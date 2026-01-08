@@ -1,5 +1,7 @@
 package errpack
 
+import "errors"
+
 var (
 	_ error = new(Error)
 )
@@ -31,21 +33,20 @@ func New(msg string, opts ...Opt) *Error {
 	}
 
 	for _, apply := range opts {
-		apply(err)
+		if apply != nil {
+			apply(err)
+		}
 	}
 
 	return err
 }
 
-func Wrap(err error, msg string) error {
+func Wrap(err error, msg string, opts ...Opt) error {
 	if err == nil {
 		return nil
 	}
 
-	return &Error{
-		msg:  msg,
-		prev: err,
-	}
+	return New(msg, append(opts, WithPrev(err))...)
 }
 
 func (e *Error) Error() string {
@@ -54,6 +55,15 @@ func (e *Error) Error() string {
 
 func (e *Error) Type() Type {
 	return e.typ
+}
+
+func (e *Error) Unwrap() error {
+	return e.prev
+}
+
+func (e *Error) Is(err error) bool {
+	var perr = new(Error)
+	return errors.As(err, &perr) && perr.typ == e.typ && perr.msg == e.msg
 }
 
 func withType(typ Type) Opt {
@@ -68,4 +78,10 @@ func WithDomain() Opt {
 
 func WithInfra() Opt {
 	return withType(Infra)
+}
+
+func WithPrev(prev error) Opt {
+	return func(err *Error) {
+		err.prev = prev
+	}
 }
