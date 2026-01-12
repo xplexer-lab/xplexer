@@ -22,12 +22,11 @@ type (
 )
 
 func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	// todo: inject logger into
+	var ctx = GetCtx(r.Context())
 
-	var in In
 	// todo: bind In dto with request data
-	var ctx = WrapCtx(r.Context())
-
+	var in In
+	ctx.Logger().Debug("hello moto")
 	res, err := qh.handle(ctx, in)
 
 	if err != nil {

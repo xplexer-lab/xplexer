@@ -1,6 +1,9 @@
 package api
 
-import "context"
+import (
+	"context"
+	"log/slog"
+)
 
 type ContextType string
 
@@ -10,17 +13,28 @@ var (
 
 type Context interface {
 	context.Context
-	Logger() any // todo: select interface for logger
+	Logger() *slog.Logger
 }
 
 var _ Context = new(apiContext)
 
-func WrapCtx(ctx context.Context) Context {
+func GetCtx(ctx context.Context) Context {
+	if cast, ok := ctx.Value(ContextKey).(*apiContext); ok {
+		return cast
+	}
+	return nil
+}
+
+func WrapCtx(
+	ctx context.Context,
+	logger *slog.Logger,
+) Context {
 	if cast, ok := ctx.Value(ContextKey).(*apiContext); ok {
 		return cast
 	}
 
 	newCtx := &apiContext{
+		logger:  logger,
 		Context: nil,
 	}
 
@@ -30,9 +44,9 @@ func WrapCtx(ctx context.Context) Context {
 
 type apiContext struct {
 	context.Context
+	logger *slog.Logger
 }
 
-func (a apiContext) Logger() any {
-	//TODO implement me
-	panic("implement me")
+func (a apiContext) Logger() *slog.Logger {
+	return a.logger
 }

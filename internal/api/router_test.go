@@ -6,8 +6,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/stretchr/testify/require"
 	"github.com/xplexer-lab/xplexer/internal/api"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -19,12 +21,17 @@ type HelloOut struct {
 }
 
 var hello = api.Query(func(ctx api.Context, in HelloIn) (*HelloOut, error) {
+	ctx.Logger().Info("hello world")
 	return &HelloOut{Message: "Hello World"}, nil
 })
 
 func TestApiRouter(t *testing.T) {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+
 	router := api.NewRouter()
-	router.SetLogger()
+	router.SetLogger(logger)
 	router.Get("/hello", hello)
 	handler, err := router.BuildHandler()
 
