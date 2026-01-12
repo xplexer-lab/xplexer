@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	Handler[Ctx any] interface {
+	Handler interface {
 		http.Handler
 		In() reflect.Type
 		Out() reflect.Type

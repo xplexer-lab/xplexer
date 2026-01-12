@@ -9,28 +9,26 @@ import (
 )
 
 var (
-	_ Handler[any] = new(queryHandler[any, any, any])
+	_ Handler = new(queryHandler[any, any])
 )
 
 type (
-	QueryOpt[In, Out, Ctx any] func(*queryHandler[In, Out, Ctx])
+	QueryOpt[In, Out any] func(*queryHandler[In, Out])
 
-	queryHandler[In, Out, Ctx any] struct {
+	queryHandler[In, Out any] struct {
 		handlerCfg
-		handle func(*In, Ctx) (*Out, error)
+		handle func(Context, In) (Out, error)
 	}
 )
 
-func (qh *queryHandler[In, Out, Ctx]) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
+func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// todo: inject logger into
-
-	var ctx Ctx
-	// todo: extract ctx from context
 
 	var in In
 	// todo: bind In dto with request data
+	var ctx = WrapCtx(r.Context())
 
-	res, err := qh.handle(&in, ctx)
+	res, err := qh.handle(ctx, in)
 
 	if err != nil {
 		qh.handleError(rw, err)
@@ -44,7 +42,7 @@ func (qh *queryHandler[In, Out, Ctx]) ServeHTTP(rw http.ResponseWriter, _ *http.
 		// todo: log error
 		qh.handleError(rw, errpack.Wrap(
 			err,
-			"failed to serizalize json",
+			"failed to serialize json",
 			errpack.WithDomain(),
 		))
 		return
@@ -59,15 +57,15 @@ func (qh *queryHandler[In, Out, Ctx]) ServeHTTP(rw http.ResponseWriter, _ *http.
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (qh *queryHandler[In, Out, Ctx]) In() reflect.Type {
+func (qh *queryHandler[In, Out]) In() reflect.Type {
 	return reflect.TypeFor[In]()
 }
 
-func (qh *queryHandler[In, Out, Ctx]) Out() reflect.Type {
+func (qh *queryHandler[In, Out]) Out() reflect.Type {
 	return reflect.TypeFor[Out]()
 }
 
-func (qh *queryHandler[In, Out, Ctx]) handleError(
+func (qh *queryHandler[In, Out]) handleError(
 	rw http.ResponseWriter,
 	err error,
 ) {
@@ -75,11 +73,11 @@ func (qh *queryHandler[In, Out, Ctx]) handleError(
 	rw.WriteHeader(http.StatusInternalServerError)
 }
 
-func Query[In, Out, Ctx any](
-	handle func(*In, Ctx) (*Out, error),
-	opts ...QueryOpt[In, Out, Ctx],
-) Handler[Ctx] {
-	res := &queryHandler[In, Out, Ctx]{
+func Query[In, Out any](
+	handle func(Context, In) (Out, error),
+	opts ...QueryOpt[In, Out],
+) Handler {
+	res := &queryHandler[In, Out]{
 		handle: handle,
 	}
 
@@ -90,10 +88,10 @@ func Query[In, Out, Ctx any](
 	return res
 }
 
-func WithQueryCommon[In, Out, Ctx any](
+func WithQueryCommon[In, Out any](
 	opts ...HandlerOpt,
-) QueryOpt[In, Out, Ctx] {
-	return func(qh *queryHandler[In, Out, Ctx]) {
+) QueryOpt[In, Out] {
+	return func(qh *queryHandler[In, Out]) {
 		for _, apply := range opts {
 			apply(&qh.handlerCfg)
 		}
