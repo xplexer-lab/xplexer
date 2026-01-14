@@ -3,10 +3,8 @@ package restapi_test
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
@@ -28,12 +26,8 @@ func TestApiRouter(t *testing.T) {
 		return &HelloOut{Message: "Hello World"}, nil
 	})
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-
 	router := restapi.NewRouter()
-	router.SetLogger(logger)
+	router.SetLogger(logger.NewDummy())
 	router.Get("/hello", hello)
 	handler, err := router.BuildHandler()
 
@@ -57,7 +51,7 @@ func TestRouter_Query(t *testing.T) {
 		Greet string `json:"greet"`
 	}
 	var getUserQuery = restapi.Query(func(ctx restapi.Context, in struct {
-		Id string `param:"user_id"`
+		Id string `path:"user_id"`
 	}) (*getUserQueryOut, error) {
 		return &getUserQueryOut{
 			Greet: fmt.Sprintf("hello user %s", in.Id),

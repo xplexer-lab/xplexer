@@ -9,6 +9,7 @@ import (
 	"github.com/creasty/defaults"
 	validator "github.com/go-playground/validator/v10"
 
+	"github.com/xplexer-lab/xplexer/internal/common/binder"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 )
 
@@ -84,6 +85,10 @@ func (qh *queryHandler[In, Out]) bind(r *http.Request) (In, error) {
 	var in In
 
 	if err := defaults.Set(&in); err != nil {
+		return in, err
+	}
+
+	if err := binder.NewDefault().Bind(r, &in); err != nil {
 		return in, err
 	}
 
