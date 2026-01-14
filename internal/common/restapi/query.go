@@ -1,7 +1,8 @@
-package api
+package restapi
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"reflect"
 
@@ -24,9 +25,9 @@ type (
 func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var ctx = GetCtx(r.Context())
 
-	// todo: bind In dto with request data
+	// todo: bind In DTO with request data
 	var in In
-	ctx.Logger().Debug("hello moto")
+	ctx.Logger().Debug("debug starting query")
 	res, err := qh.handle(ctx, in)
 
 	if err != nil {
@@ -34,11 +35,10 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// todo: provide marshaller layer
-	// marshaller can be dependent on Accept headers
+	// Marshaller can be hidden behind abstract layer
 	body, err := json.Marshal(res)
 	if err != nil {
-		// todo: log error
+		ctx.Logger().ErrorContext(ctx, "failed to serialize json", slog.Any("err", err))
 		qh.handleError(rw, errpack.Wrap(
 			err,
 			"failed to serialize json",
@@ -47,13 +47,17 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	rw.WriteHeader(http.StatusOK)
 	if _, err = rw.Write(body); err != nil {
-		// todo: log error
+		ctx.
+			Logger().
+			ErrorContext(
+				ctx,
+				"failed to write body",
+				slog.Any("err", err),
+			)
 		return
 	}
-
-	// todo: parametrize ok status
-	rw.WriteHeader(http.StatusOK)
 }
 
 func (qh *queryHandler[In, Out]) In() reflect.Type {

@@ -1,6 +1,6 @@
 // Package api
 // Has to be used as common application layer
-package api
+package restapi
 
 // Todo:
 // 1. Router
