@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/creasty/defaults"
+	validator "github.com/go-playground/validator/v10"
+
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 )
 
@@ -24,13 +27,21 @@ type (
 
 func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var ctx = GetCtx(r.Context())
-
-	// todo: bind In DTO with request data
-	var in In
 	ctx.Logger().Debug("debug starting query")
+
+	in, err := qh.bind(r)
+	if err != nil {
+		qh.handleError(rw, err)
+		return
+	}
+
 	res, err := qh.handle(ctx, in)
 
 	if err != nil {
+		ctx.Logger().Error(
+			"request failed",
+			slog.Any("err", err),
+		)
 		qh.handleError(rw, err)
 		return
 	}
@@ -47,6 +58,7 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)
 	if _, err = rw.Write(body); err != nil {
 		ctx.
@@ -66,6 +78,20 @@ func (qh *queryHandler[In, Out]) In() reflect.Type {
 
 func (qh *queryHandler[In, Out]) Out() reflect.Type {
 	return reflect.TypeFor[Out]()
+}
+
+func (qh *queryHandler[In, Out]) bind(r *http.Request) (In, error) {
+	var in In
+
+	if err := defaults.Set(&in); err != nil {
+		return in, err
+	}
+
+	if err := validator.New().Struct(in); err != nil {
+		return in, err
+	}
+
+	return in, nil
 }
 
 func (qh *queryHandler[In, Out]) handleError(
