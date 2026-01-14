@@ -1,9 +1,11 @@
 package api
 
 import (
-	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 )
 
 type (
@@ -23,48 +25,68 @@ func NewRouter() *Router {
 	return &Router{}
 }
 
-func (router *Router) SetLogger(logger *slog.Logger) *Router {
-	router.logger = logger
-	return router
+func (r *Router) SetLogger(logger *slog.Logger) *Router {
+	r.logger = logger
+	return r
 }
 
-func (router *Router) Get(path string, handler http.Handler) *Router {
-	return router.method(http.MethodGet, path, handler)
+func (r *Router) Get(path string, handler http.Handler) *Router {
+	return r.Method(http.MethodGet, path, handler)
 }
 
-func (router *Router) Post(path string, handler http.Handler) *Router {
-	return router.method(http.MethodPost, path, handler)
+func (r *Router) Post(path string, handler http.Handler) *Router {
+	return r.Method(http.MethodPost, path, handler)
 }
 
-func (router *Router) method(
+func (r *Router) Put(path string, handler http.Handler) *Router {
+	return r.Method(http.MethodPut, path, handler)
+}
+
+func (r *Router) Path(path string, handler http.Handler) *Router {
+	return r.Method(http.MethodPatch, path, handler)
+}
+
+func (r *Router) Head(path string, handler http.Handler) *Router {
+	return r.Method(http.MethodHead, path, handler)
+}
+
+func (r *Router) Options(path string, handler http.Handler) *Router {
+	return r.Method(http.MethodOptions, path, handler)
+}
+
+func (r *Router) Method(
 	method, path string,
 	handler http.Handler,
 ) *Router {
-	router.routes = append(router.routes, route{
+	r.routes = append(r.routes, route{
 		path:    path,
 		method:  method,
 		handler: handler,
 	})
-	return router
+	return r
 }
 
-func (router *Router) BuildHandler() (http.Handler, error) {
-	r := chi.NewRouter()
-	r.Use(func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (r *Router) BuildHandler() (http.Handler, error) {
+	if r.logger == nil {
+		return nil, errpack.New("logger is not provided", errpack.WithBootstrap())
+	}
+
+	router := chi.NewRouter()
+	router.Use(func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			// todo: extract like a context injector
-			handler.ServeHTTP(w, r.WithContext(
+			handler.ServeHTTP(w, req.WithContext(
 				WrapCtx(
-					r.Context(),
-					router.logger,
+					req.Context(),
+					r.logger,
 				),
 			))
 		})
 	})
 
-	for _, rItem := range router.routes {
-		r.Method(rItem.method, rItem.path, rItem.handler)
+	for _, ri := range r.routes {
+		router.Method(ri.method, ri.path, ri.handler)
 	}
 
-	return r, nil
+	return router, nil
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func TestErrpack(t *testing.T) {
-	t.Run("#New", func(t *testing.T) {
+	t.Run("errpack.New", func(t *testing.T) {
 
 		t.Run("creates new error with unknown type by default", func(t *testing.T) {
 			var err = errpack.New("error")
@@ -26,6 +26,7 @@ func TestErrpack(t *testing.T) {
 				{"unknown", nil, errpack.Unknown},
 				{"domain", errpack.WithDomain(), errpack.Domain},
 				{"infra", errpack.WithInfra(), errpack.Infra},
+				{"bootstrap", errpack.WithBootstrap(), errpack.Bootstrap},
 			}
 
 			for _, tt := range testCases {
@@ -37,7 +38,7 @@ func TestErrpack(t *testing.T) {
 		})
 	})
 
-	t.Run("Unwrap", func(t *testing.T) {
+	t.Run("errpack.Error.Unwrap", func(t *testing.T) {
 		testCases := []struct {
 			title string
 			wrap  func(err error, msg string) error
@@ -63,7 +64,7 @@ func TestErrpack(t *testing.T) {
 		}
 	})
 
-	t.Run("Wrap", func(t *testing.T) {
+	t.Run("errpack.Wrap", func(t *testing.T) {
 		t.Run("returns nil if empty item provided", func(t *testing.T) {
 			var err = new(errpack.Error)
 

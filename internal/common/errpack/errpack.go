@@ -21,9 +21,10 @@ type (
 )
 
 var (
-	Unknown = Type{"unknown"}
-	Domain  = Type{"domain"}
-	Infra   = Type{"infra"}
+	Unknown   = Type{"unknown"}
+	Domain    = Type{"domain"}
+	Infra     = Type{"infra"}
+	Bootstrap = Type{"bootstrap"}
 )
 
 func New(msg string, opts ...Opt) *Error {
@@ -78,6 +79,10 @@ func WithDomain() Opt {
 
 func WithInfra() Opt {
 	return withType(Infra)
+}
+
+func WithBootstrap() Opt {
+	return withType(Bootstrap)
 }
 
 func WithPrev(prev error) Opt {
