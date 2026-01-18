@@ -4,7 +4,8 @@
 name: Unit Tests
 
 env:
-  JUNIT_TEST_FILE: .tmp/test-ci.junit.xml
+  REPORT_JUNIT: .tmp/reports/test-ci.junit.xml
+  REPORT_GOLANG_JSON: .tmp/reports/test-ci.go.json
 
 on:
   push:
@@ -26,15 +27,15 @@ jobs:
       - name: Install dependencies
         run: make deps
 
-      - name: Test
+      - name: Run Unit Tests
         run: |
           mkdir -p .tmp
-          gotestsum -f github-actions --junitfile=${JUNIT_TEST_FILE} ./...
+          gotestsum -f github-actions --jsonfile=${{ env.REPORT_GOLANG_JSON }} --junitfile=${{ env.REPORT_JUNIT }} ./...
 
       - name: Test Report
         uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
         with:
           name: Go Tests
-          path: ${{ env.JUNIT_TEST_FILE }}
-          reporter: java-junit
+          path: ${{ env.REPORT_GOLANG_JSON }}
+          reporter: golang-json
