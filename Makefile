@@ -1,2 +1,6 @@
 test:
-	go test -v ./...
+  go test -v ./...
+
+deps:
+  go install gotest.tools/gotestsum@v1.13
+
