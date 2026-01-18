@@ -55,7 +55,7 @@ func (b *Binder) Register(tagName string, p Provider) {
 
 func (b *Binder) Bind(r *http.Request, dest any) error {
 	v := reflect.ValueOf(dest)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
+	if v.Kind() != reflect.Pointer || v.IsNil() {
 		return fmt.Errorf("binder: bind target must be a non-nil pointer")
 	}
 	return b.bindRecursive(r, v.Elem())
@@ -80,7 +80,7 @@ func (b *Binder) bindRecursive(r *http.Request, v reflect.Value) error {
 				continue
 			}
 
-			if fieldVal.Kind() == reflect.Ptr && fieldVal.Type().Elem().Kind() == reflect.Struct {
+			if fieldVal.Kind() == reflect.Pointer && fieldVal.Type().Elem().Kind() == reflect.Struct {
 				if fieldVal.IsNil() {
 					fieldVal.Set(reflect.New(fieldVal.Type().Elem()))
 				}

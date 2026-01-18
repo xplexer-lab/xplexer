@@ -25,6 +25,7 @@ var (
 	Domain    = Type{"domain"}
 	Infra     = Type{"infra"}
 	Bootstrap = Type{"bootstrap"}
+	Auth      = Type{"auth"}
 )
 
 func New(msg string, opts ...Opt) *Error {
