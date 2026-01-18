@@ -7,6 +7,12 @@ import (
 	"strconv"
 )
 
+const (
+	Path   = "path"
+	Query  = "query"
+	Header = "header"
+)
+
 type Provider func(r *http.Request, key string) ([]string, bool)
 
 type Binder struct {
@@ -18,7 +24,7 @@ func NewDefault() *Binder {
 		providers: make(map[string]Provider),
 	}
 
-	b.Register("path", func(r *http.Request, key string) ([]string, bool) {
+	b.Register(Path, func(r *http.Request, key string) ([]string, bool) {
 		val := r.PathValue(key)
 		if val == "" {
 			return nil, false
@@ -26,14 +32,14 @@ func NewDefault() *Binder {
 		return []string{val}, true
 	})
 
-	b.Register("query", func(r *http.Request, key string) ([]string, bool) {
+	b.Register(Query, func(r *http.Request, key string) ([]string, bool) {
 		if !r.URL.Query().Has(key) {
 			return nil, false
 		}
 		return r.URL.Query()[key], true
 	})
 
-	b.Register("header", func(r *http.Request, key string) ([]string, bool) {
+	b.Register(Header, func(r *http.Request, key string) ([]string, bool) {
 		if vals, ok := r.Header[http.CanonicalHeaderKey(key)]; ok && len(vals) > 0 {
 			return vals, true
 		}
@@ -205,4 +211,3 @@ func setSlice(v reflect.Value, values []string) error {
 	v.Set(newSlice)
 	return nil
 }
-
