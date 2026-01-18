@@ -1,0 +1,13 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - gofmt
+    - revive
+    - misspell
+    # disable:
+    - errcheck # Example: Disable if you find it too strict
+

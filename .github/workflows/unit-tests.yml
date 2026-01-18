@@ -27,3 +27,11 @@ jobs:
         run: |
           mkdir -p .tmp
           gotestsum -f github-actions --junitfile .tmp/ci-junit.xml ./...
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Go Tests
+          path: .tmp/test-ci.junit.xml
+          reporter: java-junit
