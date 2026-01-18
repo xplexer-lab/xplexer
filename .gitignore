@@ -1,2 +1,16 @@
-.idea
+# temporary files
 .tmp
+
+# IDE and text editors
+.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/plugins.json
+
+
+# binaries
+/xplexer
+
+# go
+go.work

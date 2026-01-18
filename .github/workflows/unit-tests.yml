@@ -3,6 +3,9 @@
 
 name: Unit Tests
 
+env:
+  JUNIT_TEST_FILE: .tmp/test-ci.junit.xml
+
 on:
   push:
     branches:
@@ -26,12 +29,12 @@ jobs:
       - name: Test
         run: |
           mkdir -p .tmp
-          gotestsum -f github-actions --junitfile .tmp/ci-junit.xml ./...
+          gotestsum -f github-actions --junitfile=${JUNIT_TEST_FILE} ./...
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Go Tests
-          path: .tmp/test-ci.junit.xml
+          path: ${{ env.JUNIT_TEST_FILE }}
           reporter: java-junit
