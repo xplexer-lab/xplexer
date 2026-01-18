@@ -34,7 +34,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          mkdir -p $(dirname ${{ env.REPORT_JUNIT }})
+          mkdir -p .tmp/reports
           gotestsum \
             -f github-actions \
             --jsonfile=${{ env.REPORT_GOLANG_JSON }} \
