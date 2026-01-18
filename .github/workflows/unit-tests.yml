@@ -6,6 +6,8 @@ name: Unit Tests
 env:
   REPORT_JUNIT: .tmp/reports/test-ci.junit.xml
   REPORT_GOLANG_JSON: .tmp/reports/test-ci.go.json
+  COVERAGE_PROFILE: .tmp/reports/coverage.out
+  COVERAGE_HTML: .tmp/reports/coverage.html
 
 on:
   push:
@@ -16,6 +18,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@v4
 
@@ -29,8 +34,37 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          mkdir -p .tmp
-          gotestsum -f github-actions --jsonfile=${{ env.REPORT_GOLANG_JSON }} --junitfile=${{ env.REPORT_JUNIT }} ./...
+          mkdir -p $(dirname ${{ env.REPORT_JUNIT }})
+          gotestsum \
+            -f github-actions \
+            --jsonfile=${{ env.REPORT_GOLANG_JSON }} \
+            --junitfile=${{ env.REPORT_JUNIT }} \
+            -covermode=atomic \
+            -coverprofile=${{ env.COVERAGE_PROFILE }} \
+            ./...
+
+      - name: Generate Coverage HTML Report
+        run: go tool cover -html=${{ env.COVERAGE_PROFILE }} -o ${{ env.COVERAGE_HTML }}
+
+      - name: Coverage Summary
+        run: |
+          echo "## 🛡️ Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_COVERAGE=$(go tool cover -func=${{ env.COVERAGE_PROFILE }} | grep total | awk '{print $3}')
+          echo "**Total Coverage: $TOTAL_COVERAGE**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Details" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=${{ env.COVERAGE_PROFILE }} >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ${{ env.COVERAGE_HTML }}
 
       - name: Test Report
         uses: dorny/test-reporter@v2
