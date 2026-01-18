@@ -32,8 +32,8 @@ jobs:
           gotestsum -f github-actions --junitfile=${JUNIT_TEST_FILE} ./...
 
       - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
         with:
           name: Go Tests
           path: ${{ env.JUNIT_TEST_FILE }}
