@@ -20,5 +20,11 @@ jobs:
         with:
           go-version: "1.25"
 
+      - name: Install
+        run: |
+          go install gotest.tools/gotestsum@v1.13
+
       - name: Test
-        run: go test -v ./...
+        run: |
+          mkdir -p .tmp
+          gotestsum -f github-actions --junifile .tmp/ci-junit.xml ./...
