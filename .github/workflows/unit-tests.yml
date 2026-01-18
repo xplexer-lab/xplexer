@@ -39,6 +39,7 @@ jobs:
             -f github-actions \
             --jsonfile=${{ env.REPORT_GOLANG_JSON }} \
             --junitfile=${{ env.REPORT_JUNIT }} \
+            -- \
             -covermode=atomic \
             -coverprofile=${{ env.COVERAGE_PROFILE }} \
             ./...
