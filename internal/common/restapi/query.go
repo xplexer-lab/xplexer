@@ -16,7 +16,7 @@ import (
 
 var (
 	_                Handler = new(queryHandler[any, any])
-	defaultBinder            = binder.NewDefault()
+	defaultBinder            = binder.Default()
 	defaultValidator         = validator.New()
 )
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestBinder_Bind(t *testing.T) {
-	b := NewDefault()
+	b := Default()
 
 	t.Run("Scalar Types", func(t *testing.T) {
 		type Request struct {

@@ -19,7 +19,7 @@ type Binder struct {
 	providers map[string]Provider
 }
 
-func NewDefault() *Binder {
+func Default() *Binder {
 	b := &Binder{
 		providers: make(map[string]Provider),
 	}

@@ -1,14 +1,14 @@
 .PHONY: build
 
 build: deps
-	go build -o xplexer .
+	@go build -o xplexer .
 
 dirs:
-	mkdir -p .tmp
+	@mkdir -p .tmp
 
 test: deps dirs
-	gotestsum -f dots ./...
+	@gotestsum -f dots-v2 ./...
 
 deps:
-	go install gotest.tools/gotestsum@v1.13
+	@go install gotest.tools/gotestsum@v1.13
 
