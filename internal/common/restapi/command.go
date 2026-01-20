@@ -1,10 +1,25 @@
 package restapi
 
+import (
+	"net/http"
+	"slices"
+)
+
 type (
 	CommandOpt[In any] func(*command[In])
 
-	command[T any] struct {
+	command[In any] struct {
+		queryHandler[In, commandOut]
+		message string
 	}
+
+	commandOut struct {
+		Message string `json:"message"`
+	}
+)
+
+const (
+	defaultCommandMessage = "Accepted"
 )
 
 // Command
@@ -14,7 +29,22 @@ type (
 // Generally command handler responds with status code 202 Accepted.
 func Command[In any](
 	handle func(Context, In) error,
-	opts ...CommandOpt[In],
+	opts ...QueryOpt[In, commandOut],
 ) Handler {
-	panic("not implemented")
+	defaultOpts := []QueryOpt[In, commandOut]{
+		WithQueryCommon[In, commandOut](
+			WithSuccessCode(http.StatusAccepted),
+		),
+	}
+
+	return Query(func(ctx Context, in In) (commandOut, error) {
+
+		if err := handle(ctx, in); err != nil {
+			return commandOut{}, err
+		}
+
+		return commandOut{
+			Message: defaultCommandMessage,
+		}, nil
+	}, slices.Concat(defaultOpts, opts)...)
 }

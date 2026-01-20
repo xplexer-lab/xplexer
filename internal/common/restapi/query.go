@@ -41,6 +41,7 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 	in, err := qh.bind(r)
 	if err != nil {
 		qh.handleError(r, rw, err)
+
 		return
 	}
 
@@ -62,7 +63,7 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
+	rw.WriteHeader(qh.getSuccessCode())
 	if _, err = rw.Write(body); err != nil {
 		ctx.
 			Logger().
@@ -177,7 +178,7 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 		case errpack.Unknown:
 			fallthrough
 		default:
-			return http.StatusInternalServerError, true, ErrorResponse{
+			return qh.getErrorCodeFallback(), true, ErrorResponse{
 				Error: "Internal Server Error",
 			}
 		}
