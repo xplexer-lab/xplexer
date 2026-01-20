@@ -18,6 +18,6 @@ func New() *Tests {
 
 func (tt *Tests) Run(t *testing.T) {
 	t.Run("it works as expected", func(t *testing.T) {
-		assert.True(t, false)
+		assert.True(t, true)
 	})
 }

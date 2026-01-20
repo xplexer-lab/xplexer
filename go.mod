@@ -3,23 +3,26 @@ module github.com/xplexer-lab/xplexer
 go 1.25.5
 
 require (
+	github.com/alecthomas/kingpin v2.2.6+incompatible
+	github.com/creasty/defaults v1.8.0
 	github.com/gavv/httpexpect/v2 v2.17.0
 	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-playground/validator/v10 v10.30.1
 	github.com/stretchr/testify v1.11.1
 )
 
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
+	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
