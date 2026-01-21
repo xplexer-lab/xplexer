@@ -10,7 +10,11 @@ import (
 )
 
 type ProjectCreateIn struct {
-	Name string `json:"name"`
+	Name         string `json:"name" validate:"required"`
+	Token        string `header:"X-Token"`
+	Content      string `header:"Content-type"`
+	Page         int    `query:"page" default:"0"`
+	ItemsPerPage int    `query:"items_per_age" default:"90"`
 }
 
 type ProjectCreateOut struct {
