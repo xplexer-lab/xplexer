@@ -1,11 +1,23 @@
 package cli
 
 import (
+	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/alecthomas/kingpin"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/internal/usecases"
+)
+
+type logLevel string
+
+const (
+	logLevelDebug logLevel = "debug"
+	logLevelInfo  logLevel = "info"
+	logLevelWarn  logLevel = "warn"
+	logLevelError logLevel = "error"
 )
 
 const (
@@ -17,12 +29,11 @@ const (
 func New(name string) *Cli {
 
 	cmd := Cli{
-		root:    kingpin.New(name, helpRoot),
-		verbose: false,
+		root: kingpin.New(name, helpRoot),
 	}
 	cmd.logger = cmd.buildLogger()
 
-	cmd.root.Flag("verbose", "Enable verbose mode").Short('v').BoolVar(&cmd.verbose)
+	cmd.root.Flag("log-level", "Set logging level").Default("debug").EnumVar(&cmd.logLevel, "debug", "info", "warn", "error")
 	cmd.root.PreAction(func(_ *kingpin.ParseContext) error {
 		// Rebuild logger because of severity level depends on flag
 		cmd.logger = cmd.buildLogger()
@@ -37,9 +48,9 @@ func New(name string) *Cli {
 }
 
 type Cli struct {
-	root    *kingpin.Application
-	logger  *slog.Logger
-	verbose bool
+	root     *kingpin.Application
+	logger   *slog.Logger
+	logLevel string
 }
 
 func (c *Cli) Run(args []string) {
@@ -54,22 +65,50 @@ func (c *Cli) workerCommand() {
 	worker := c.root.Command("worker", "run worker")
 
 	config := worker.Flag("config", "Path to configuration file").Short('c').String()
+	port := worker.Flag("port", "Listen port").Short('p').Default("8080").Uint16()
+	host := worker.Flag("host", "Listen host").Short('h').Default("").String()
 
 	worker.Action(func(pc *kingpin.ParseContext) error {
 		c.logger.Info("reading config file", slog.String("path", *config))
+
+		handler, err := usecases.BuildRouter().BuildHandler()
+
+		if err != nil {
+			return err
+		}
+
+		listen := fmt.Sprintf("%s:%d", *host, *port)
+
+		c.logger.Debug("starting server", slog.String("listen", listen))
+
+		// todo: todo: graceful handler
+		http.ListenAndServe(
+			listen,
+			handler,
+		)
+
 		return nil
 	})
 }
 
-func (c *Cli) buildLogger() *slog.Logger {
-	level := slog.LevelWarn
-
-	if c.verbose {
-		level = slog.LevelDebug
+func (c *Cli) getLoggerLevel() slog.Level {
+	switch logLevel(c.logLevel) {
+	case logLevelError:
+		return slog.LevelError
+	case logLevelWarn:
+		return slog.LevelWarn
+	case logLevelInfo:
+		return slog.LevelInfo
+	case logLevelDebug:
+		fallthrough
+	default:
+		return slog.LevelDebug
 	}
+}
 
+func (c *Cli) buildLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
+		Level: c.getLoggerLevel(),
 	}))
 }
 

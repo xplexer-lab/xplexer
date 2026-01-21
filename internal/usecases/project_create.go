@@ -2,8 +2,10 @@ package usecases
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/internal/common/logger"
 	"github.com/xplexer-lab/xplexer/internal/common/restapi"
 )
 
@@ -16,6 +18,12 @@ type ProjectCreateOut struct {
 	Name string `json:"name"`
 }
 
-var ProjectCreate = restapi.Query(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
+var projectCreate = restapi.Query(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
+	var log = logger.Get(ctx)
+
+	log.Error("try execute query",
+		slog.Any("in", in),
+	)
+
 	return nil, errpack.New("not implemented", errpack.Bootstrap())
 })
