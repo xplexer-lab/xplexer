@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -10,8 +11,9 @@ import (
 
 type (
 	Router struct {
-		routes []route
-		logger *slog.Logger
+		routes      []route
+		logger      *slog.Logger
+		middlewares []func(http.Handler) http.Handler
 	}
 
 	route struct {
@@ -54,6 +56,10 @@ func (r *Router) Options(path string, handler http.Handler) *Router {
 	return r.Method(http.MethodOptions, path, handler)
 }
 
+func (r *Router) Use(middlewares ...func(http.Handler) http.Handler) {
+	r.middlewares = append(r.middlewares, middlewares...)
+}
+
 func (r *Router) Method(
 	method, path string,
 	handler http.Handler,
@@ -72,21 +78,28 @@ func (r *Router) BuildHandler() (http.Handler, error) {
 	}
 
 	router := chi.NewRouter()
-	router.Use(func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			// todo: extract like a context injector
-			handler.ServeHTTP(w, req.WithContext(
-				WrapCtx(
-					req.Context(),
-					r.logger,
-				),
-			))
-		})
-	})
+	router.Use(injectLogger(r.logger))
+	router.Use(r.middlewares...)
 
 	for _, ri := range r.routes {
 		router.Method(ri.method, ri.path, ri.handler)
 	}
 
 	return router, nil
+}
+
+type loggerKeyType string
+
+const loggerKey loggerKeyType = "logger"
+
+func injectLogger(logger *slog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), loggerKey, logger)))
+		})
+	}
+}
+
+func logger(ctx context.Context) *slog.Logger {
+	return ctx.Value(loggerKey).(*slog.Logger)
 }

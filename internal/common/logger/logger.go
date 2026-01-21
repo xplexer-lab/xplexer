@@ -28,7 +28,10 @@ func (nw *nullWriter) Write(p []byte) (n int, err error) {
 func Inject(l *Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			l = l.WithGroup("request")
+			l = l.WithGroup("request").With(
+				slog.String("url", r.URL.String()),
+				slog.String("method", r.Method),
+			)
 			r = r.WithContext(context.WithValue(r.Context(), keyLogger, l))
 			next.ServeHTTP(w, r)
 		})
@@ -36,8 +39,5 @@ func Inject(l *Logger) func(http.Handler) http.Handler {
 }
 
 func Get(ctx context.Context) *Logger {
-	if logger, ok := ctx.Value(keyLogger).(*Logger); ok {
-		return logger
-	}
-	return nil
+	return ctx.Value(keyLogger).(*Logger)
 }

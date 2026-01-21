@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -30,13 +31,14 @@ type (
 
 	queryHandler[In, Out any] struct {
 		handlerCfg
-		handle func(Context, In) (Out, error)
+		handle func(context.Context, In) (Out, error)
 	}
 )
 
 func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	var ctx = GetCtx(r.Context())
-	ctx.Logger().Debug("debug starting query")
+	var ctx = r.Context()
+	var log = logger(ctx)
+	log.Debug("debug starting query")
 
 	in, err := qh.bind(r)
 	if err != nil {
@@ -65,8 +67,7 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(qh.getSuccessCode())
 	if _, err = rw.Write(body); err != nil {
-		ctx.
-			Logger().
+		log.
 			ErrorContext(
 				ctx,
 				"failed to write body",
@@ -113,7 +114,7 @@ func (qh *queryHandler[In, Out]) handleError(
 	rw http.ResponseWriter,
 	err error,
 ) {
-	ctx := GetCtx(r.Context())
+	ctx := r.Context()
 	status, shouldLogStack, response := qh.mapError(err)
 
 	if shouldLogStack {
@@ -175,6 +176,16 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 				Error: "Internal Server Error",
 			}
 
+		case errpack.TypeForbidden:
+			return http.StatusForbidden, true, ErrorResponse{
+				Error: "Forbidden",
+			}
+
+		case errpack.TypeUnauthorized:
+			return http.StatusUnauthorized, true, ErrorResponse{
+				Error: "Unauthorized",
+			}
+
 		case errpack.TypeUnknown:
 			fallthrough
 		default:
@@ -190,7 +201,7 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 }
 
 func Query[In, Out any](
-	handle func(Context, In) (Out, error),
+	handle func(context.Context, In) (Out, error),
 	opts ...QueryOpt[In, Out],
 ) Handler {
 	res := &queryHandler[In, Out]{

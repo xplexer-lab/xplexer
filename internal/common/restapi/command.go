@@ -1,6 +1,7 @@
 package restapi
 
 import (
+	"context"
 	"net/http"
 	"slices"
 )
@@ -28,7 +29,7 @@ const (
 // Command can have defined input `DTO` and response code.
 // Generally command handler responds with status code 202 Accepted.
 func Command[In any](
-	handle func(Context, In) error,
+	handle func(context.Context, In) error,
 	opts ...QueryOpt[In, commandOut],
 ) Handler {
 	defaultOpts := []QueryOpt[In, commandOut]{
@@ -37,7 +38,7 @@ func Command[In any](
 		),
 	}
 
-	return Query(func(ctx Context, in In) (commandOut, error) {
+	return Query(func(ctx context.Context, in In) (commandOut, error) {
 
 		if err := handle(ctx, in); err != nil {
 			return commandOut{}, err
