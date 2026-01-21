@@ -76,7 +76,7 @@ func (c *Cli) buildLogger() *slog.Logger {
 func (c *Cli) cpCommand() {
 	cp := c.root.Command("cp", "contol plane")
 	cp.Action(func(pc *kingpin.ParseContext) error {
-		return errpack.New("non implemented", errpack.WithBootstrap())
+		return errpack.New("non implemented", errpack.Bootstrap())
 	})
 }
 
@@ -86,12 +86,12 @@ func (c *Cli) configCommand() {
 	cp.
 		Command("validate", "validate config").
 		Action(func(pc *kingpin.ParseContext) error {
-			return errpack.New("non implemented", errpack.WithBootstrap())
+			return errpack.New("non implemented", errpack.Bootstrap())
 		})
 
 	cp.
 		Command("gen", "generate example file name").
 		Action(func(pc *kingpin.ParseContext) error {
-			return errpack.New("not implemented", errpack.WithBootstrap())
+			return errpack.New("not implemented", errpack.Bootstrap())
 		})
 }

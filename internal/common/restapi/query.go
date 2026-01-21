@@ -57,7 +57,7 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 		qh.handleError(r, rw, errpack.Wrap(
 			err,
 			"failed to serialize json",
-			errpack.WithDomain(),
+			errpack.Domain(),
 		))
 		return
 	}
@@ -160,22 +160,22 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 	var e *errpack.Error
 	if errors.As(err, &e) {
 		switch e.Type() {
-		case errpack.Domain:
+		case errpack.TypeDomain:
 			return http.StatusUnprocessableEntity, false, ErrorResponse{
 				Error: e.Error(),
 			}
 
-		case errpack.Auth:
+		case errpack.TypeUnauthorized:
 			return http.StatusForbidden, true, ErrorResponse{
 				Error: "Access Denied",
 			}
 
-		case errpack.Infra, errpack.Bootstrap:
+		case errpack.TypeInfra, errpack.TypeBootstrap:
 			return http.StatusInternalServerError, true, ErrorResponse{
 				Error: "Internal Server Error",
 			}
 
-		case errpack.Unknown:
+		case errpack.TypeUnknown:
 			fallthrough
 		default:
 			return qh.getErrorCodeFallback(), true, ErrorResponse{

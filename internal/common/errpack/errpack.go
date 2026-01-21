@@ -21,17 +21,18 @@ type (
 )
 
 var (
-	Unknown   = Type{"unknown"}
-	Domain    = Type{"domain"}
-	Infra     = Type{"infra"}
-	Bootstrap = Type{"bootstrap"}
-	Auth      = Type{"auth"}
+	TypeUnknown      = Type{"unknown"}
+	TypeDomain       = Type{"domain"}
+	TypeInfra        = Type{"infra"}
+	TypeBootstrap    = Type{"bootstrap"}
+	TypeUnauthorized = Type{"unauthroized"}
+	TypeForbidden    = Type{"forbidden"}
 )
 
 func New(msg string, opts ...Opt) *Error {
 	err := &Error{
 		msg: msg,
-		typ: Unknown,
+		typ: TypeUnknown,
 	}
 
 	for _, apply := range opts {
@@ -74,16 +75,24 @@ func withType(typ Type) Opt {
 	}
 }
 
-func WithDomain() Opt {
-	return withType(Domain)
+func Domain() Opt {
+	return withType(TypeDomain)
 }
 
-func WithInfra() Opt {
-	return withType(Infra)
+func Infra() Opt {
+	return withType(TypeInfra)
 }
 
-func WithBootstrap() Opt {
-	return withType(Bootstrap)
+func Bootstrap() Opt {
+	return withType(TypeBootstrap)
+}
+
+func Forbidden() Opt {
+	return withType(TypeForbidden)
+}
+
+func Unauthorized() Opt {
+	return withType(TypeUnauthorized)
 }
 
 func WithPrev(prev error) Opt {

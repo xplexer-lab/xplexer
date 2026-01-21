@@ -15,5 +15,5 @@ type ProjectCreateOut struct {
 }
 
 var ProjectCreate = restapi.Query(func(ctx restapi.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
-	return nil, errpack.New("not implemented", errpack.WithBootstrap())
+	return nil, errpack.New("not implemented", errpack.Bootstrap())
 })

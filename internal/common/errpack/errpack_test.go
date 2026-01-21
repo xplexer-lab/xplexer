@@ -14,7 +14,7 @@ func TestErrpack(t *testing.T) {
 
 		t.Run("creates new error with unknown type by default", func(t *testing.T) {
 			var err = errpack.New("error")
-			assert.Equal(t, errpack.Unknown, err.Type())
+			assert.Equal(t, errpack.TypeUnknown, err.Type())
 		})
 
 		t.Run("typed errors", func(t *testing.T) {
@@ -23,10 +23,10 @@ func TestErrpack(t *testing.T) {
 				opt      errpack.Opt
 				expected errpack.Type
 			}{
-				{"unknown", nil, errpack.Unknown},
-				{"domain", errpack.WithDomain(), errpack.Domain},
-				{"infra", errpack.WithInfra(), errpack.Infra},
-				{"bootstrap", errpack.WithBootstrap(), errpack.Bootstrap},
+				{"unknown", nil, errpack.TypeUnknown},
+				{"domain", errpack.Domain(), errpack.TypeDomain},
+				{"infra", errpack.Infra(), errpack.TypeInfra},
+				{"bootstrap", errpack.Bootstrap(), errpack.TypeBootstrap},
 			}
 
 			for _, tt := range testCases {

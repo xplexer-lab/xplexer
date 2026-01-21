@@ -68,7 +68,7 @@ func (r *Router) Method(
 
 func (r *Router) BuildHandler() (http.Handler, error) {
 	if r.logger == nil {
-		return nil, errpack.New("logger is not provided", errpack.WithBootstrap())
+		return nil, errpack.New("logger is not provided", errpack.Bootstrap())
 	}
 
 	router := chi.NewRouter()
