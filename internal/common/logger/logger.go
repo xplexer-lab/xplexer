@@ -39,6 +39,6 @@ func Inject(l *Logger) func(http.Handler) http.Handler {
 	}
 }
 
-func Get(ctx context.Context) *Logger {
+func FromContext(ctx context.Context) *Logger {
 	return ctx.Value(keyLogger).(*Logger)
 }

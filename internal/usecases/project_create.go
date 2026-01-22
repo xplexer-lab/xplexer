@@ -23,7 +23,7 @@ type ProjectCreateOut struct {
 }
 
 var projectCreate = restapi.Query(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
-	var log = logger.Get(ctx)
+	var log = logger.FromContext(ctx)
 
 	log.Error("try execute query",
 		slog.Any("in", in),

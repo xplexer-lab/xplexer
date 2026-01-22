@@ -23,7 +23,7 @@ func TestApiRouter(t *testing.T) {
 	}
 
 	var hello = restapi.Query(func(ctx context.Context, in HelloIn) (*HelloOut, error) {
-		logger.Get(ctx).Info("hello world")
+		logger.FromContext(ctx).Info("hello world")
 		return &HelloOut{Message: "Hello World"}, nil
 	})
 
