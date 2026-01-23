@@ -6,15 +6,22 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type EntityId string
+type Id string
 
 type Entity struct {
-	id        EntityId
+	id        Id
 	createdAt time.Time
 	updatedAt time.Time
 	deletedAt *time.Time
 
 	events []proto.Message
+}
+
+type State struct {
+	Id        Id
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeleteAt  *time.Time
 }
 
 type Opt func(*Entity)
@@ -28,7 +35,7 @@ func New(opts ...Opt) *Entity {
 	}
 }
 
-func (e *Entity) Id() EntityId {
+func (e *Entity) Id() Id {
 	return e.id
 }
 
@@ -58,6 +65,15 @@ func (e *Entity) DeleteAt(ts time.Time) {
 
 func (e *Entity) Delete() {
 	e.DeleteAt(time.Now())
+}
+
+func (e *Entity) ToState() State {
+	return State{
+		Id:        e.id,
+		CreatedAt: e.createdAt,
+		UpdatedAt: e.updatedAt,
+		DeleteAt:  e.deletedAt,
+	}
 }
 
 func (e *Entity) RecordEvent(evt proto.Message) {
