@@ -3,6 +3,7 @@ package entity
 import (
 	"time"
 
+	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -92,12 +93,14 @@ func (e *Entity) PopEvents() []proto.Message {
 }
 
 func (e *Entity) Load(s State) error {
+	if len(e.events) > 0 {
+		return errpack.New("non flushed events", errpack.Domain())
+	}
+
 	e.id = s.Id
 	e.createdAt = s.CreatedAt
 	e.updatedAt = s.UpdatedAt
 	e.deletedAt = s.DeleteAt
-
-	// todo: add validation logic
 
 	return nil
 }

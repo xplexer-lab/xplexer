@@ -2,11 +2,11 @@ package usecases
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
-	"github.com/xplexer-lab/xplexer/internal/common/logger"
+	"github.com/xplexer-lab/xplexer/internal/common/persistance"
 	"github.com/xplexer-lab/xplexer/internal/common/restapi"
+	"github.com/xplexer-lab/xplexer/internal/domain"
 )
 
 type ProjectCreateIn struct {
@@ -23,11 +23,17 @@ type ProjectCreateOut struct {
 }
 
 var projectCreate = restapi.Operation(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
-	var log = logger.FromContext(ctx)
+	return persistance.Tx(ctx, func(ctx context.Context, repos Repos) (*ProjectCreateOut, error) {
+		project, err := domain.NewProject()
 
-	log.Error("try execute query",
-		slog.Any("in", in),
-	)
+		if err != nil {
+			return nil, err
+		}
 
-	return nil, errpack.New("not implemented", errpack.Bootstrap())
+		if err := repos.Project.Insert(ctx, project); err != nil {
+			return nil, err
+		}
+
+		return nil, errpack.New("not implemented", errpack.Bootstrap())
+	})
 })

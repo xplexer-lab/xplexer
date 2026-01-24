@@ -43,7 +43,7 @@ type Updater[T Aggregate[S], S any] interface {
 }
 
 type Inserter[T Aggregate[S], S any] interface {
-	Insert(ctx context.Context, id Id, update func(*T) error) error
+	Insert(ctx context.Context, entity T) error
 }
 
 type Deleter[T Aggregate[S], S any] interface {

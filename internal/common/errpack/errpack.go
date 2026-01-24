@@ -27,6 +27,7 @@ var (
 	TypeBootstrap    = Type{"bootstrap"}
 	TypeUnauthorized = Type{"unauthroized"}
 	TypeForbidden    = Type{"forbidden"}
+	TypeUnreachable  = Type{"unreachable"}
 )
 
 func New(msg string, opts ...Opt) *Error {
@@ -93,6 +94,10 @@ func Forbidden() Opt {
 
 func Unauthorized() Opt {
 	return withType(TypeUnauthorized)
+}
+
+func Unreachable() Opt {
+	return withType(TypeUnreachable)
 }
 
 func WithPrev(prev error) Opt {
