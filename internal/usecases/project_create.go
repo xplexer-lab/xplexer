@@ -22,7 +22,7 @@ type ProjectCreateOut struct {
 	Name string `json:"name"`
 }
 
-var projectCreate = restapi.Query(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
+var projectCreate = restapi.Operation(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
 	var log = logger.FromContext(ctx)
 
 	log.Error("try execute query",

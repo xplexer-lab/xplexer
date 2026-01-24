@@ -10,7 +10,7 @@ type (
 	CommandOpt[In any] func(*command[In])
 
 	command[In any] struct {
-		queryHandler[In, commandOut]
+		operationHanlder[In, commandOut]
 		message string
 	}
 
@@ -30,16 +30,15 @@ const (
 // Generally command handler responds with status code 202 Accepted.
 func Command[In any](
 	handle func(context.Context, In) error,
-	opts ...QueryOpt[In, commandOut],
+	opts ...OperationOpt[In, commandOut],
 ) Handler {
-	defaultOpts := []QueryOpt[In, commandOut]{
-		WithQueryCommon[In, commandOut](
+	defaultOpts := []OperationOpt[In, commandOut]{
+		WithOpCommon[In, commandOut](
 			WithSuccessCode(http.StatusAccepted),
 		),
 	}
 
-	return Query(func(ctx context.Context, in In) (commandOut, error) {
-
+	return Operation(func(ctx context.Context, in In) (commandOut, error) {
 		if err := handle(ctx, in); err != nil {
 			return commandOut{}, err
 		}

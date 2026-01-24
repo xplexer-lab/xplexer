@@ -41,7 +41,8 @@ func New(name string) *Cli {
 	})
 
 	cmd.workerCommand()
-	cmd.cpCommand()
+	cmd.controlPlaneCommand()
+	cmd.controlPlaneUiCommand()
 	cmd.configCommand()
 
 	return &cmd
@@ -64,30 +65,8 @@ func (c *Cli) Run(args []string) {
 func (c *Cli) workerCommand() {
 	worker := c.root.Command("worker", "run worker")
 
-	config := worker.Flag("config", "Path to configuration file").Short('c').String()
-	port := worker.Flag("port", "Listen port").Short('p').Default("8080").Uint16()
-	host := worker.Flag("host", "Listen host").Short('h').Default("").String()
-
 	worker.Action(func(pc *kingpin.ParseContext) error {
-		c.logger.Info("reading config file", slog.String("path", *config))
-
-		handler, err := usecases.BuildRouter().BuildHandler()
-
-		if err != nil {
-			return err
-		}
-
-		listen := fmt.Sprintf("%s:%d", *host, *port)
-
-		c.logger.Debug("starting server", slog.String("listen", listen))
-
-		// todo: todo: graceful handler
-		http.ListenAndServe(
-			listen,
-			handler,
-		)
-
-		return nil
+		return errpack.New("not implemented", errpack.Bootstrap())
 	})
 }
 
@@ -112,8 +91,38 @@ func (c *Cli) buildLogger() *slog.Logger {
 	}))
 }
 
-func (c *Cli) cpCommand() {
-	cp := c.root.Command("cp", "contol plane")
+func (c *Cli) controlPlaneCommand() {
+	controlPlane := c.root.Command("control-plane", "contol plane")
+
+	config := controlPlane.Flag("config", "Path to configuration file").Short('c').String()
+	port := controlPlane.Flag("port", "Listen port").Short('p').Default("8080").Uint16()
+	host := controlPlane.Flag("host", "Listen host").Short('h').Default("").String()
+
+	controlPlane.Action(func(pc *kingpin.ParseContext) error {
+		c.logger.Info("reading config file", slog.String("path", *config))
+
+		handler, err := usecases.BuildRouter().BuildHandler()
+
+		if err != nil {
+			return err
+		}
+
+		listen := fmt.Sprintf("%s:%d", *host, *port)
+
+		c.logger.Debug("starting server", slog.String("listen", listen))
+
+		// todo: todo: graceful handler
+		http.ListenAndServe(
+			listen,
+			handler,
+		)
+
+		return nil
+	})
+}
+
+func (c *Cli) controlPlaneUiCommand() {
+	cp := c.root.Command("control-plane-ui", "contol plane ui interface")
 	cp.Action(func(pc *kingpin.ParseContext) error {
 		return errpack.New("non implemented", errpack.Bootstrap())
 	})
@@ -124,6 +133,8 @@ func (c *Cli) configCommand() {
 
 	cp.
 		Command("validate", "validate config").
+		Arg("path", "path to condif file to validate").
+		Required().
 		Action(func(pc *kingpin.ParseContext) error {
 			return errpack.New("non implemented", errpack.Bootstrap())
 		})

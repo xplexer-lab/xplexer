@@ -16,26 +16,30 @@ import (
 )
 
 var (
-	_                Handler = new(queryHandler[any, any])
+	_                Handler = new(operationHanlder[any, any])
 	defaultBinder            = binder.Default()
 	defaultValidator         = validator.New()
 )
 
 type (
-	QueryOpt[In, Out any] func(*queryHandler[In, Out])
+	OperationOpt[In, Out any] func(*operationHanlder[In, Out])
 
 	ErrorResponse struct {
 		Error   string            `json:"error"`
 		Details map[string]string `json:"details,omitempty"`
 	}
 
-	queryHandler[In, Out any] struct {
+	operationHanlder[In, Out any] struct {
 		handlerCfg
 		handle func(context.Context, In) (Out, error)
 	}
 )
 
-func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (qh *operationHanlder[In, Out]) Middlewares() Middlewares {
+	return qh.middlewares
+}
+
+func (qh *operationHanlder[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var ctx = r.Context()
 	var log = logger(ctx)
 	log.Debug("debug starting query")
@@ -77,15 +81,15 @@ func (qh *queryHandler[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (qh *queryHandler[In, Out]) In() reflect.Type {
+func (qh *operationHanlder[In, Out]) In() reflect.Type {
 	return reflect.TypeFor[In]()
 }
 
-func (qh *queryHandler[In, Out]) Out() reflect.Type {
+func (qh *operationHanlder[In, Out]) Out() reflect.Type {
 	return reflect.TypeFor[Out]()
 }
 
-func (qh *queryHandler[In, Out]) bind(r *http.Request) (In, error) {
+func (qh *operationHanlder[In, Out]) bind(r *http.Request) (In, error) {
 	var in In
 
 	if err := defaults.Set(&in); err != nil {
@@ -109,7 +113,7 @@ func (qh *queryHandler[In, Out]) bind(r *http.Request) (In, error) {
 	return in, nil
 }
 
-func (qh *queryHandler[In, Out]) handleError(
+func (qh *operationHanlder[In, Out]) handleError(
 	r *http.Request,
 	rw http.ResponseWriter,
 	err error,
@@ -138,7 +142,7 @@ func (qh *queryHandler[In, Out]) handleError(
 	}
 }
 
-func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) {
+func (qh *operationHanlder[In, Out]) mapError(err error) (int, bool, ErrorResponse) {
 	// validation errors
 	var valErrs validator.ValidationErrors
 	if errors.As(err, &valErrs) {
@@ -166,7 +170,7 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 				Error: e.Error(),
 			}
 
-		case errpack.TypeUnauthorized:
+		case errpack.TypeForbidden:
 			return http.StatusForbidden, true, ErrorResponse{
 				Error: "Access Denied",
 			}
@@ -174,11 +178,6 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 		case errpack.TypeInfra, errpack.TypeBootstrap:
 			return http.StatusInternalServerError, true, ErrorResponse{
 				Error: "Internal Server Error",
-			}
-
-		case errpack.TypeForbidden:
-			return http.StatusForbidden, true, ErrorResponse{
-				Error: "Forbidden",
 			}
 
 		case errpack.TypeUnauthorized:
@@ -200,11 +199,11 @@ func (qh *queryHandler[In, Out]) mapError(err error) (int, bool, ErrorResponse) 
 	}
 }
 
-func Query[In, Out any](
+func Operation[In, Out any](
 	handle func(context.Context, In) (Out, error),
-	opts ...QueryOpt[In, Out],
+	opts ...OperationOpt[In, Out],
 ) Handler {
-	res := &queryHandler[In, Out]{
+	res := &operationHanlder[In, Out]{
 		handle: handle,
 	}
 
@@ -215,13 +214,21 @@ func Query[In, Out any](
 	return res
 }
 
-func WithQueryCommon[In, Out any](
+func WithOpCommon[In, Out any](
 	opts ...HandlerOpt,
-) QueryOpt[In, Out] {
-	return func(qh *queryHandler[In, Out]) {
+) OperationOpt[In, Out] {
+	return func(qh *operationHanlder[In, Out]) {
 		for _, apply := range opts {
 			apply(&qh.handlerCfg)
 		}
+	}
+}
+
+func WithOpMiddlewares[In, Out any](
+	middlewares ...Middleware,
+) OperationOpt[In, Out] {
+	return func(qh *operationHanlder[In, Out]) {
+		qh.middlewares = append(qh.middlewares, middlewares...)
 	}
 }
 

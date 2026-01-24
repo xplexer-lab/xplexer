@@ -22,7 +22,7 @@ func TestApiRouter(t *testing.T) {
 		Name    string `json:"name"`
 	}
 
-	var hello = restapi.Query(func(ctx context.Context, in HelloIn) (*HelloOut, error) {
+	var hello = restapi.Operation(func(ctx context.Context, in HelloIn) (*HelloOut, error) {
 		logger.FromContext(ctx).Info("hello world")
 		return &HelloOut{Message: "Hello World"}, nil
 	})
@@ -54,7 +54,7 @@ func TestRouter_Query(t *testing.T) {
 	type getUserQueryOut struct {
 		Greet string `json:"greet"`
 	}
-	var getUserQuery = restapi.Query(func(ctx context.Context, in struct {
+	var getUserQuery = restapi.Operation(func(ctx context.Context, in struct {
 		Id string `path:"user_id"`
 	}) (*getUserQueryOut, error) {
 		return &getUserQueryOut{

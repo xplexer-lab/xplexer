@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// Base entity has to implemente Aggregate
+	// Base entity has to implement Aggregate
 	_ Aggregate[State] = new(Entity)
 )
 

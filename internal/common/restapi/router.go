@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"slices"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
@@ -13,13 +14,13 @@ type (
 	Router struct {
 		routes      []route
 		logger      *slog.Logger
-		middlewares []func(http.Handler) http.Handler
+		middlewares Middlewares
 	}
 
 	route struct {
 		path    string
 		method  string
-		handler http.Handler
+		handler Handler
 	}
 )
 
@@ -32,37 +33,38 @@ func (r *Router) SetLogger(logger *slog.Logger) *Router {
 	return r
 }
 
-func (r *Router) Get(path string, handler http.Handler) *Router {
+func (r *Router) Get(path string, handler Handler) *Router {
 	return r.Method(http.MethodGet, path, handler)
 }
 
-func (r *Router) Post(path string, handler http.Handler) *Router {
+func (r *Router) Post(path string, handler Handler) *Router {
 	return r.Method(http.MethodPost, path, handler)
 }
 
-func (r *Router) Put(path string, handler http.Handler) *Router {
+func (r *Router) Put(path string, handler Handler) *Router {
 	return r.Method(http.MethodPut, path, handler)
 }
 
-func (r *Router) Path(path string, handler http.Handler) *Router {
+func (r *Router) Path(path string, handler Handler) *Router {
 	return r.Method(http.MethodPatch, path, handler)
 }
 
-func (r *Router) Head(path string, handler http.Handler) *Router {
+func (r *Router) Head(path string, handler Handler) *Router {
 	return r.Method(http.MethodHead, path, handler)
 }
 
-func (r *Router) Options(path string, handler http.Handler) *Router {
+func (r *Router) Options(path string, handler Handler) *Router {
 	return r.Method(http.MethodOptions, path, handler)
 }
 
-func (r *Router) Use(middlewares ...func(http.Handler) http.Handler) {
+// Adds global middlewares
+func (r *Router) Use(middlewares ...Middleware) {
 	r.middlewares = append(r.middlewares, middlewares...)
 }
 
 func (r *Router) Method(
 	method, path string,
-	handler http.Handler,
+	handler Handler,
 ) *Router {
 	r.routes = append(r.routes, route{
 		path:    path,
@@ -82,10 +84,24 @@ func (r *Router) BuildHandler() (http.Handler, error) {
 	router.Use(r.middlewares...)
 
 	for _, ri := range r.routes {
-		router.Method(ri.method, ri.path, ri.handler)
+		router.Method(ri.method, ri.path, ri.httpHandler())
 	}
 
 	return router, nil
+}
+
+// build handler and uses command scope middlewares
+func (r route) httpHandler() http.Handler {
+	var res http.Handler = r.handler
+
+	mws := slices.Clone(r.handler.Middlewares())
+	slices.Reverse(mws)
+
+	for _, mw := range mws {
+		res = mw(res)
+	}
+
+	return res
 }
 
 type loggerKeyType string

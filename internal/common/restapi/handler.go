@@ -6,13 +6,19 @@ import (
 )
 
 type (
+	Middleware = func(http.Handler) http.Handler
+
+	Middlewares []Middleware
+
 	Handler interface {
 		http.Handler
 		In() reflect.Type
 		Out() reflect.Type
+		Middlewares() Middlewares
 	}
 
 	handlerCfg struct {
+		middlewares       Middlewares
 		errorCodeFallback int
 		successCode       int
 	}
