@@ -16,12 +16,17 @@ type Dumper[State any] interface {
 	ToState() State
 }
 
+type Loader[State any] interface {
+	Load(State) error
+}
+
 type EventProvider interface {
 	PopEvents() []proto.Message
 }
 
 type Aggregate[State any] interface {
 	Dumper[State]
+	Loader[State]
 	EventProvider
 }
 

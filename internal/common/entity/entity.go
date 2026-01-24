@@ -6,6 +6,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var (
+	// Base entity has to implemente Aggregate
+	_ Aggregate[State] = new(Entity)
+)
+
 type Id string
 
 type Entity struct {
@@ -84,4 +89,15 @@ func (e *Entity) PopEvents() []proto.Message {
 	ret := e.events
 	e.events = nil
 	return ret
+}
+
+func (e *Entity) Load(s State) error {
+	e.id = s.Id
+	e.createdAt = s.CreatedAt
+	e.updatedAt = s.UpdatedAt
+	e.deletedAt = s.DeleteAt
+
+	// todo: add validation logic
+
+	return nil
 }

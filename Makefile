@@ -12,5 +12,5 @@ test: deps dirs
 # tools
 deps:
 	@go install gotest.tools/gotestsum@v1.13
-	@go install cmd/xplexer-criteria-gen
+	@go install cmd/xplexer-gen-query
 

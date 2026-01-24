@@ -61,4 +61,3 @@ type TimeField string
 
 func (f TimeField) Gt(v time.Time) Condition { return Predicate{string(f), OpGt, v} }
 func (f TimeField) Eq(v time.Time) Condition { return Predicate{string(f), OpEq, v} }
-
