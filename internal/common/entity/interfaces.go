@@ -31,7 +31,7 @@ type Aggregate[State any] interface {
 }
 
 type OneFinder[T Aggregate[S], S any] interface {
-	FindOne(ctx context.Context, id Id) (*T, error)
+	FindOne(ctx context.Context, id Id) (T, error)
 }
 
 type Finder[T Aggregate[S], S any] interface {

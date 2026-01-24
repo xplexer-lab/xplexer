@@ -10,6 +10,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/protobuf v1.36.11
+	gorm.io/gorm v1.31.1
 )
 
 require (
@@ -29,6 +30,8 @@ require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
