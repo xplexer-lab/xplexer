@@ -1,5 +1,8 @@
 package domain
 
+import "github.com/xplexer-lab/xplexer/internal/common/entity"
+
 type Message struct {
-	id string
+	*entity.Entity
+	project entity.Id
 }

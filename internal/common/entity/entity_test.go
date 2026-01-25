@@ -1,6 +1,7 @@
 package entity_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,6 @@ func newDummy() *dummy {
 }
 
 func TestEntity(t *testing.T) {
-
 	t.Run("Delete", func(t *testing.T) {
 
 		t.Run("delete marks entity as deleted", func(t *testing.T) {
@@ -36,5 +36,15 @@ func TestEntity(t *testing.T) {
 			assert.Equal(t, deletedAt, d.DeletedAt())
 		})
 
+	})
+}
+
+func TestId(t *testing.T) {
+	t.Run("New", func(t *testing.T) {
+		id := entity.NewId()
+		str := strings.ReplaceAll(id.Hex(), "-", "")
+		assert.True(t, len(str) == 32, "16 bytes id is created")
+		var zeroId entity.Id
+		assert.True(t, zeroId != id, "creates non zero struct")
 	})
 }

@@ -23,6 +23,11 @@ func NewId() Id {
 	return Id(uuid.New())
 }
 
+func ParseId(in string) (Id, error) {
+	id, err := uuid.Parse(in)
+	return Id(id), err
+}
+
 func (id Id) Hex() string {
 	return uuid.UUID(id).String()
 }

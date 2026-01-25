@@ -12,12 +12,12 @@ var (
 
 type Project struct {
 	*entity.Entity
-	schemas []string
+	schemas map[SchemaSlug]Schema
 }
 
 type ProjectState struct {
 	entity.State
-	Schemas []string
+	Schemas map[SchemaSlug]Schema
 }
 
 func (p *Project) ToState() ProjectState {
