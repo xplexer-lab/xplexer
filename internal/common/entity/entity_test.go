@@ -24,7 +24,6 @@ func newDummy() *dummy {
 
 func TestEntity(t *testing.T) {
 	t.Run("Delete", func(t *testing.T) {
-
 		t.Run("delete marks entity as deleted", func(t *testing.T) {
 			d := newDummy()
 			assert.False(t, d.Deleted())
@@ -35,7 +34,6 @@ func TestEntity(t *testing.T) {
 			d.Delete()
 			assert.Equal(t, deletedAt, d.DeletedAt())
 		})
-
 	})
 }
 

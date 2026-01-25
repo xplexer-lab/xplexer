@@ -29,13 +29,13 @@ jobs:
         with:
           go-version: "1.25"
 
-      - name: Install dependencies
-        run: make deps
+      - name: Go Generate
+        run: go generate
 
       - name: Run Unit Tests
         run: |
           mkdir -p .tmp/reports
-          gotestsum \
+          go tool gotestsum \
             -f github-actions \
             --jsonfile=${{ env.REPORT_GOLANG_JSON }} \
             --junitfile=${{ env.REPORT_JUNIT }} \

@@ -7,11 +7,7 @@ dirs:
 	@mkdir -p .tmp
 
 test: deps dirs
-	@gotestsum -f dots-v2 ./...
+	@go tool gotestsum -f dots-v2 ./...
 
-# tools
-deps:
-	@go install gotest.tools/gotestsum@v1.13
-	@go install ./cmd/xplexer-gen-query
-	@go generate
-
+wtest:
+	@go tool gotestsum --watch --jsonfile=.tmp/test-report.json --post-run-command="go tool xplexer-notify .tmp/test-report.json" ./...
