@@ -10,6 +10,7 @@ import (
 var (
 	_ entity.Inserter[entity.Aggregate[any], any]  = new(Repository[entity.Aggregate[any], any, any])
 	_ entity.OneFinder[entity.Aggregate[any], any] = new(Repository[entity.Aggregate[any], any, any])
+	_ entity.Updater[entity.Aggregate[any], any]   = new(Repository[entity.Aggregate[any], any, any])
 	// todo: implement other parts of repository
 )
 
@@ -63,4 +64,14 @@ func (r *Repository[E, S, M]) FindOne(ctx context.Context, id entity.Id) (E, err
 	}
 
 	return ent, nil
+}
+
+func (r *Repository[E, S, M]) Update(ctx context.Context, id entity.Id, update func(*E) error) error {
+	ent, err := r.FindOne(ctx, id)
+
+	if err != nil {
+		return nil
+	}
+
+	return update(&ent)
 }
