@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	ErrNotFound = errpack.New("entity not found", errpack.Domain())
+	ErrNotFound       = errpack.New("entity not found", errpack.Domain())
+	ErrOptimisticLock = errpack.New("err optimistic lock", errpack.Infra())
 )
 
 type Dumper[State any] interface {
@@ -24,10 +25,16 @@ type EventProvider interface {
 	PopEvents() []bus.AnyEnvelope
 }
 
+type Versioner interface {
+	Version() int
+	SetVersion(v int)
+}
+
 type Aggregate[State any] interface {
 	Dumper[State]
 	Loader[State]
 	EventProvider
+	Versioner
 }
 
 type OneFinder[T Aggregate[S], S any] interface {
@@ -39,7 +46,7 @@ type Finder[T Aggregate[S], S any] interface {
 }
 
 type Updater[T Aggregate[S], S any] interface {
-	Update(ctx context.Context, id Id, update func(*T) error) error
+	Update(ctx context.Context, id Id, update func(T) error) error
 }
 
 type Inserter[T Aggregate[S], S any] interface {

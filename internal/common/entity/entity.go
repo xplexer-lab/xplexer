@@ -11,6 +11,10 @@ import (
 var (
 	// Base entity has to implement Aggregate
 	_ Aggregate[State] = new(Entity)
+	_ Versioner        = new(Entity)
+	_ EventProvider    = new(Entity)
+	_ Loader[State]    = new(Entity)
+	_ Dumper[State]    = new(Entity)
 )
 
 type Id uuid.UUID
@@ -28,8 +32,17 @@ type Entity struct {
 	createdAt time.Time
 	updatedAt time.Time
 	deletedAt *time.Time
+	version   int
 
 	events []bus.AnyEnvelope
+}
+
+func (e *Entity) Version() int {
+	return e.version
+}
+
+func (e *Entity) SetVersion(v int) {
+	e.version = v
 }
 
 type State struct {
@@ -37,6 +50,7 @@ type State struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeleteAt  *time.Time
+	Version   int
 }
 
 type Opt func(*Entity)
@@ -47,6 +61,7 @@ func New(opts ...Opt) *Entity {
 		createdAt: time.Now(),
 		updatedAt: time.Now(),
 		deletedAt: nil,
+		version:   0,
 	}
 }
 
@@ -88,6 +103,7 @@ func (e *Entity) ToState() State {
 		CreatedAt: e.createdAt,
 		UpdatedAt: e.updatedAt,
 		DeleteAt:  e.deletedAt,
+		Version:   e.version,
 	}
 }
 
@@ -110,6 +126,7 @@ func (e *Entity) Load(s State) error {
 	e.createdAt = s.CreatedAt
 	e.updatedAt = s.UpdatedAt
 	e.deletedAt = s.DeleteAt
+	e.version = s.Version
 
 	return nil
 }

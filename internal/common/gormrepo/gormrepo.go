@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	_ entity.Inserter[entity.Aggregate[any], any]  = new(Repository[entity.Aggregate[any], any, any])
-	_ entity.OneFinder[entity.Aggregate[any], any] = new(Repository[entity.Aggregate[any], any, any])
-	_ entity.Updater[entity.Aggregate[any], any]   = new(Repository[entity.Aggregate[any], any, any])
+	_ entity.Inserter[entity.Aggregate[any], any]  = new(Repository[entity.Aggregate[any], any, Model])
+	_ entity.OneFinder[entity.Aggregate[any], any] = new(Repository[entity.Aggregate[any], any, Model])
+	_ entity.Updater[entity.Aggregate[any], any]   = new(Repository[entity.Aggregate[any], any, Model])
+	_ entity.Deleter[entity.Aggregate[any], any]   = new(Repository[entity.Aggregate[any], any, Model])
 	// todo: implement other parts of repository
 )
 
@@ -45,7 +46,13 @@ func New[E entity.Aggregate[S], S any, M any](
 func (r *Repository[E, S, M]) Insert(ctx context.Context, ent E) error {
 	state := ent.ToState()
 	model := r.toModel(state)
-	return r.db.WithContext(ctx).Create(model).Error
+
+	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
+		return err
+	}
+
+	// backward propagation
+	return ent.Load(r.toState(model))
 }
 
 func (r *Repository[E, S, M]) FindOne(ctx context.Context, id entity.Id) (E, error) {
@@ -66,12 +73,43 @@ func (r *Repository[E, S, M]) FindOne(ctx context.Context, id entity.Id) (E, err
 	return ent, nil
 }
 
-func (r *Repository[E, S, M]) Update(ctx context.Context, id entity.Id, update func(*E) error) error {
+func (r *Repository[E, S, M]) Update(ctx context.Context, id entity.Id, update func(E) error) error {
 	ent, err := r.FindOne(ctx, id)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
-	return update(&ent)
+	if err := update(ent); err != nil {
+		return err
+	}
+
+	version := ent.Version()
+	ent.SetVersion(version + 1)
+	newModel := r.toModel(ent.ToState())
+	ent.SetVersion(version)
+
+	result := r.db.WithContext(ctx).
+		Model(newModel).
+		Omit("id", "created_at").
+		Where("id = ? AND __v = ?", id.Hex(), version).
+		Updates(newModel)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return entity.ErrOptimisticLock
+	}
+
+	return nil
 }
+
+func (r *Repository[E, S, M]) Delete(ctx context.Context, id entity.Id) error {
+	var model M
+	return r.db.WithContext(ctx).
+		Where("id = ?", id.Hex()).
+		Delete(&model).Error
+}
+
