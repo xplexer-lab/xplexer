@@ -3,8 +3,9 @@ package entity
 import (
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/xplexer-lab/xplexer/internal/common/bus"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
-	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -12,7 +13,15 @@ var (
 	_ Aggregate[State] = new(Entity)
 )
 
-type Id string
+type Id uuid.UUID
+
+func NewId() Id {
+	return Id(uuid.New())
+}
+
+func (id Id) Hex() string {
+	return uuid.UUID(id).String()
+}
 
 type Entity struct {
 	id        Id
@@ -20,7 +29,7 @@ type Entity struct {
 	updatedAt time.Time
 	deletedAt *time.Time
 
-	events []proto.Message
+	events []bus.AnyEnvelope
 }
 
 type State struct {
@@ -34,7 +43,7 @@ type Opt func(*Entity)
 
 func New(opts ...Opt) *Entity {
 	return &Entity{
-		id:        "",
+		id:        NewId(),
 		createdAt: time.Now(),
 		updatedAt: time.Now(),
 		deletedAt: nil,
@@ -82,11 +91,11 @@ func (e *Entity) ToState() State {
 	}
 }
 
-func (e *Entity) RecordEvent(evt proto.Message) {
+func (e *Entity) RecordEvent(evt bus.AnyEnvelope) {
 	e.events = append(e.events, evt)
 }
 
-func (e *Entity) PopEvents() []proto.Message {
+func (e *Entity) PopEvents() []bus.AnyEnvelope {
 	ret := e.events
 	e.events = nil
 	return ret

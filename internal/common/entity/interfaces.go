@@ -3,9 +3,9 @@ package entity
 import (
 	"context"
 
+	"github.com/xplexer-lab/xplexer/internal/common/bus"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 	"github.com/xplexer-lab/xplexer/internal/common/query"
-	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -21,7 +21,7 @@ type Loader[State any] interface {
 }
 
 type EventProvider interface {
-	PopEvents() []proto.Message
+	PopEvents() []bus.AnyEnvelope
 }
 
 type Aggregate[State any] interface {
