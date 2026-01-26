@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
@@ -51,44 +50,12 @@ func TestApiRouter(t *testing.T) {
 	require.Equal(t, "Hello World", out.Message)
 }
 
-var calls struct {
-	mu    sync.Mutex
-	calls int
-}
-
-func resetCalls() {
-	calls.mu.Lock()
-	defer calls.mu.Unlock()
-	calls.calls = 0
-}
-
-func getCalls() int {
-	calls.mu.Lock()
-	defer calls.mu.Unlock()
-	return calls.calls
-}
-
-func incrCalls() {
-	calls.mu.Lock()
-	defer calls.mu.Unlock()
-	calls.calls++
-}
-
-type sanitizer struct{}
-
-func (sa *sanitizer) Sanitize() {
-	incrCalls()
-}
-
 func TestRouter_Operation_Common(t *testing.T) {
-	resetCalls()
-
 	type getUserQueryOut struct {
 		Greet string `json:"greet"`
 	}
 
 	type operationIn struct {
-		*sanitizer
 		Id string `path:"user_id"`
 	}
 
@@ -117,7 +84,6 @@ func TestRouter_Operation_Common(t *testing.T) {
 		Decode(&out)
 
 	require.Equal(t, "hello user 1234", out.Greet)
-	require.Equal(t, 1, getCalls(), "invokes sanitize metthod")
 }
 
 type opIn struct {
@@ -133,7 +99,7 @@ type opOut struct {
 }
 
 func TestOperation(t *testing.T) {
-	t.Run("sanitizer works with pointers", func(t *testing.T) {
+	t.Run("sanitize fn is invoked bfore validation", func(t *testing.T) {
 
 		r := restapi.NewRouter()
 		r.SetLogger(logger.NewDummy())
@@ -154,13 +120,13 @@ func TestOperation(t *testing.T) {
 		test.
 			POST("/operation").
 			WithJSON(&opIn{
-				Name: "\t master ",
+				Name: "\t John Doe \n\n",
 			}).
 			Expect().
 			Status(http.StatusOK).
 			JSON().
 			Decode(&out)
 
-		require.Equal(t, "master", out.Name)
+		require.Equal(t, "John Doe", out.Name)
 	})
 }
