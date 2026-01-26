@@ -106,6 +106,10 @@ func (qh *operationHanlder[In, Out]) bind(r *http.Request) (In, error) {
 		return in, err
 	}
 
+	if casted, ok := any(&in).(Sanitizer); ok {
+		casted.Sanitize()
+	}
+
 	if err := defaultValidator.Struct(in); err != nil {
 		return in, err
 	}

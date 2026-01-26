@@ -10,11 +10,7 @@ import (
 )
 
 type ProjectCreateIn struct {
-	Name         string `json:"name" validate:"required"`
-	Token        string `header:"X-Token"`
-	Content      string `header:"Content-type"`
-	Page         int    `query:"page" default:"0"`
-	ItemsPerPage int    `query:"items_per_age" default:"90"`
+	Name string `json:"name" validate:"required"`
 }
 
 type ProjectCreateOut struct {
@@ -24,13 +20,13 @@ type ProjectCreateOut struct {
 
 var projectCreate = restapi.Operation(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
 	return persistance.Tx(ctx, func(ctx context.Context, repos Repos) (*ProjectCreateOut, error) {
-		project, err := domain.NewProject()
+		project, err := domain.NewProject(in.Name)
 
 		if err != nil {
 			return nil, err
 		}
 
-		if err := repos.Project.Insert(ctx, project); err != nil {
+		if err := repos.Projects.Insert(ctx, project); err != nil {
 			return nil, err
 		}
 
