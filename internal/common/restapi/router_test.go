@@ -23,10 +23,12 @@ func TestApiRouter(t *testing.T) {
 		Name    string `json:"name"`
 	}
 
-	var hello = restapi.Operation(func(ctx context.Context, in HelloIn) (*HelloOut, error) {
-		logger.FromContext(ctx).Info("hello world")
-		return &HelloOut{Message: "Hello World"}, nil
-	})
+	var hello = restapi.Operation(
+		restapi.WithHandler(func(ctx context.Context, in HelloIn) (*HelloOut, error) {
+			logger.FromContext(ctx).Info("hello world")
+			return &HelloOut{Message: "Hello World"}, nil
+		}),
+	)
 
 	log := logger.NewDummy()
 
@@ -59,11 +61,13 @@ func TestRouter_Operation_Common(t *testing.T) {
 		Id string `path:"user_id"`
 	}
 
-	var getUserQuery = restapi.Operation(func(ctx context.Context, in operationIn) (*getUserQueryOut, error) {
-		return &getUserQueryOut{
-			Greet: fmt.Sprintf("hello user %s", in.Id),
-		}, nil
-	})
+	var getUserQuery = restapi.Operation(
+		restapi.WithHandler(func(ctx context.Context, in operationIn) (*getUserQueryOut, error) {
+			return &getUserQueryOut{
+				Greet: fmt.Sprintf("hello user %s", in.Id),
+			}, nil
+		}),
+	)
 
 	r := restapi.NewRouter()
 	r.SetLogger(logger.NewDummy())
@@ -103,11 +107,13 @@ func TestOperation(t *testing.T) {
 
 		r := restapi.NewRouter()
 		r.SetLogger(logger.NewDummy())
-		r.Post("/operation", restapi.Operation(func(ctx context.Context, in opIn) (*opOut, error) {
-			return &opOut{
-				Name: fmt.Sprintf("%s", in.Name),
-			}, nil
-		}))
+		r.Post("/operation", restapi.Operation(
+			restapi.WithHandler(func(ctx context.Context, in opIn) (*opOut, error) {
+				return &opOut{
+					Name: fmt.Sprintf("%s", in.Name),
+				}, nil
+			}),
+		))
 
 		handler, err := r.BuildHandler()
 

@@ -18,18 +18,20 @@ type ProjectCreateOut struct {
 	Name string `json:"name"`
 }
 
-var projectCreate = restapi.Operation(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
-	return persistance.Tx(ctx, func(ctx context.Context, repos Repos) (*ProjectCreateOut, error) {
-		project, err := domain.NewProject(in.Name)
+var projectCreate = restapi.Operation(
+	restapi.WithHandler(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
+		return persistance.Tx(ctx, func(ctx context.Context, repos Repos) (*ProjectCreateOut, error) {
+			project, err := domain.NewProject(in.Name)
 
-		if err != nil {
-			return nil, err
-		}
+			if err != nil {
+				return nil, err
+			}
 
-		if err := repos.Projects.Insert(ctx, project); err != nil {
-			return nil, err
-		}
+			if err := repos.Projects.Insert(ctx, project); err != nil {
+				return nil, err
+			}
 
-		return nil, errpack.New("not implemented", errpack.Bootstrap())
-	})
-})
+			return nil, errpack.New("not implemented", errpack.Bootstrap())
+		})
+	}),
+)

@@ -13,9 +13,12 @@ type ProjectDto struct {
 	Name string `json:"name"`
 }
 
-var projectList = restapi.Operation(func(ctx context.Context, in ProjectListIn) ([]ProjectDto, error) {
-	return []ProjectDto{
-		{"1", "first"},
-		{"2", "second"},
-	}, nil
-})
+var projectList = restapi.Operation(
+	restapi.WithOpMiddlewares(),
+	restapi.WithHandler(func(ctx context.Context, in ProjectListIn) ([]ProjectDto, error) {
+		return []ProjectDto{
+			{"1", "first"},
+			{"2", "second"},
+		}, nil
+	}),
+)

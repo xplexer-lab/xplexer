@@ -16,30 +16,33 @@ import (
 )
 
 var (
-	_                Handler = new(operationHanlder[any, any])
+	_                Handler = new(operationHanlder)
 	defaultBinder            = binder.Default()
 	defaultValidator         = validator.New()
 )
 
 type (
-	OperationOpt[In, Out any] func(*operationHanlder[In, Out])
+	OperationOpt func(*operationHanlder)
 
 	ErrorResponse struct {
 		Error   string            `json:"error"`
 		Details map[string]string `json:"details,omitempty"`
 	}
 
-	operationHanlder[In, Out any] struct {
+	operationHanlder struct {
 		handlerCfg
-		handle func(context.Context, In) (Out, error)
+		handle func(context.Context, any) (any, error)
+		bind   func(*http.Request) (any, error)
+		in     reflect.Type
+		out    reflect.Type
 	}
 )
 
-func (qh *operationHanlder[In, Out]) Middlewares() Middlewares {
+func (qh *operationHanlder) Middlewares() Middlewares {
 	return qh.middlewares
 }
 
-func (qh *operationHanlder[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (qh *operationHanlder) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var ctx = r.Context()
 	var log = logger(ctx)
 	log.Debug("debug starting query")
@@ -81,43 +84,15 @@ func (qh *operationHanlder[In, Out]) ServeHTTP(rw http.ResponseWriter, r *http.R
 	}
 }
 
-func (qh *operationHanlder[In, Out]) In() reflect.Type {
-	return reflect.TypeFor[In]()
+func (qh *operationHanlder) In() reflect.Type {
+	panic("todo: implement")
 }
 
-func (qh *operationHanlder[In, Out]) Out() reflect.Type {
-	return reflect.TypeFor[Out]()
+func (qh *operationHanlder) Out() reflect.Type {
+	panic("todo: implement")
 }
 
-func (qh *operationHanlder[In, Out]) bind(r *http.Request) (In, error) {
-	var in In
-
-	if err := defaults.Set(&in); err != nil {
-		return in, err
-	}
-
-	if r.ContentLength > 0 && r.Body != nil {
-		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
-			return in, err
-		}
-	}
-
-	if err := defaultBinder.Bind(r, &in); err != nil {
-		return in, err
-	}
-
-	if casted, ok := any(&in).(Sanitizer); ok {
-		casted.Sanitize()
-	}
-
-	if err := defaultValidator.Struct(in); err != nil {
-		return in, err
-	}
-
-	return in, nil
-}
-
-func (qh *operationHanlder[In, Out]) handleError(
+func (qh *operationHanlder) handleError(
 	r *http.Request,
 	rw http.ResponseWriter,
 	err error,
@@ -146,7 +121,7 @@ func (qh *operationHanlder[In, Out]) handleError(
 	}
 }
 
-func (qh *operationHanlder[In, Out]) mapError(err error) (int, bool, ErrorResponse) {
+func (qh *operationHanlder) mapError(err error) (int, bool, ErrorResponse) {
 	// validation errors
 	var valErrs validator.ValidationErrors
 	if errors.As(err, &valErrs) {
@@ -203,12 +178,14 @@ func (qh *operationHanlder[In, Out]) mapError(err error) (int, bool, ErrorRespon
 	}
 }
 
-func Operation[In, Out any](
-	handle func(context.Context, In) (Out, error),
-	opts ...OperationOpt[In, Out],
+func Operation(
+	opts ...OperationOpt,
 ) Handler {
-	res := &operationHanlder[In, Out]{
-		handle: handle,
+	res := &operationHanlder{
+		handle: defaultHandleFn,
+		bind:   defaultBindFn,
+		in:     reflect.TypeFor[any](),
+		out:    reflect.TypeFor[any](),
 	}
 
 	for _, apply := range opts {
@@ -218,20 +195,21 @@ func Operation[In, Out any](
 	return res
 }
 
-func WithOpCommon[In, Out any](
-	opts ...HandlerOpt,
-) OperationOpt[In, Out] {
-	return func(qh *operationHanlder[In, Out]) {
-		for _, apply := range opts {
-			apply(&qh.handlerCfg)
+func WithHandler[In, Out any](handle func(context.Context, In) (Out, error)) OperationOpt {
+	return func(oh *operationHanlder) {
+		oh.handle = func(ctx context.Context, in any) (any, error) {
+			return handle(ctx, in.(In))
 		}
+		oh.bind = binderFn[In]
+		oh.in = reflect.TypeFor[In]()
+		oh.out = reflect.TypeFor[Out]()
 	}
 }
 
-func WithOpMiddlewares[In, Out any](
+func WithOpMiddlewares(
 	middlewares ...Middleware,
-) OperationOpt[In, Out] {
-	return func(qh *operationHanlder[In, Out]) {
+) OperationOpt {
+	return func(qh *operationHanlder) {
 		qh.middlewares = append(qh.middlewares, middlewares...)
 	}
 }
@@ -242,4 +220,40 @@ func mapValidationErrors(verrs validator.ValidationErrors) map[string]string {
 		result[f.Field()] = f.Tag()
 	}
 	return result
+}
+
+func binderFn[In any](r *http.Request) (any, error) {
+	var in In
+
+	if err := defaults.Set(&in); err != nil {
+		return in, err
+	}
+
+	if r.ContentLength > 0 && r.Body != nil {
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+			return in, err
+		}
+	}
+
+	if err := defaultBinder.Bind(r, &in); err != nil {
+		return in, err
+	}
+
+	if casted, ok := any(&in).(Sanitizer); ok {
+		casted.Sanitize()
+	}
+
+	if err := defaultValidator.Struct(in); err != nil {
+		return in, err
+	}
+
+	return in, nil
+}
+
+func defaultHandleFn(ctx context.Context, a any) (any, error) {
+	return nil, errpack.New("handler not implemtned", errpack.Bootstrap())
+}
+
+func defaultBindFn(r *http.Request) (any, error) {
+	return nil, errpack.New("binder not implemented", errpack.Bootstrap())
 }

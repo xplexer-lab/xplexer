@@ -34,9 +34,9 @@ func WithErrorStatusCode(
 	}
 }
 
-func WithSuccessCode(code int) HandlerOpt {
-	return func(hc *handlerCfg) {
-		hc.successCode = code
+func WithSuccessCode(code int) OperationOpt {
+	return func(oh *operationHanlder) {
+		oh.successCode = code
 	}
 }
 

@@ -3,14 +3,13 @@ package restapi
 import (
 	"context"
 	"net/http"
-	"slices"
 )
 
 type (
-	CommandOpt[In any] func(*command[In])
+	CommandOpt func(*command)
 
-	command[In any] struct {
-		operationHanlder[In, commandOut]
+	command struct {
+		operationHanlder
 		message string
 	}
 
@@ -29,16 +28,22 @@ const (
 // Command can have defined input `DTO` and response code.
 // Generally command handler responds with status code 202 Accepted.
 func Command[In any](
-	handle func(context.Context, In) error,
-	opts ...OperationOpt[In, commandOut],
+	opts ...OperationOpt,
 ) Handler {
-	defaultOpts := []OperationOpt[In, commandOut]{
-		WithOpCommon[In, commandOut](
-			WithSuccessCode(http.StatusAccepted),
-		),
+
+	defaultOpts := []OperationOpt{
+		WithSuccessCode(http.StatusAccepted),
 	}
 
-	return Operation(func(ctx context.Context, in In) (commandOut, error) {
+	return Operation(
+		append(defaultOpts, opts...)...,
+	)
+}
+
+// CommandHandler
+// Defines handler for the command.
+func CommandHandler[In any](handle func(context.Context, In) error) OperationOpt {
+	return WithHandler(func(ctx context.Context, in In) (commandOut, error) {
 		if err := handle(ctx, in); err != nil {
 			return commandOut{}, err
 		}
@@ -46,5 +51,5 @@ func Command[In any](
 		return commandOut{
 			Message: defaultCommandMessage,
 		}, nil
-	}, slices.Concat(defaultOpts, opts)...)
+	})
 }
