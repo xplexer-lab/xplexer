@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +27,16 @@ func NewId() Id {
 func ParseId(in string) (Id, error) {
 	id, err := uuid.Parse(in)
 	return Id(id), err
+}
+
+func MustParseId(in string) Id {
+	id, err := ParseId(in)
+
+	if err != nil {
+		panic(fmt.Errorf("failed to parse id: %w", err))
+	}
+
+	return id
 }
 
 func (id Id) Hex() string {

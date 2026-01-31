@@ -61,6 +61,11 @@ func (e *Error) Type() Type {
 	return e.typ
 }
 
+func (e Error) Wrap(prev error) *Error {
+	e.prev = prev
+	return &e
+}
+
 func (e *Error) Unwrap() error {
 	return e.prev
 }

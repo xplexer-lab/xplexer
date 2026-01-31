@@ -2,8 +2,10 @@ package gormrepo
 
 import (
 	"context"
+	"errors"
 
 	"github.com/xplexer-lab/xplexer/internal/common/entity"
+	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 	"gorm.io/gorm"
 )
 
@@ -19,8 +21,8 @@ var (
 type Factory[E any] func() E
 
 // State <-> Model mapping and vice versa
-type ToModelFn[S any, M any] func(S) *M
-type ToStateFn[S any, M any] func(*M) S
+type ToModelFn[S any, M any] func(S) (*M, error)
+type ToStateFn[S any, M any] func(*M) (S, error)
 
 type Repository[E entity.Aggregate[S], S any, M any] struct {
 	db      *gorm.DB
@@ -45,25 +47,38 @@ func New[E entity.Aggregate[S], S any, M any](
 
 func (r *Repository[E, S, M]) Insert(ctx context.Context, ent E) error {
 	state := ent.ToState()
-	model := r.toModel(state)
+	model, err := r.toModel(state)
+
+	if err != nil {
+		return err
+	}
 
 	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
 		return err
 	}
 
+	state, err = r.toState(model)
+
+	if err != nil {
+		return err
+	}
+
 	// backward propagation
-	return ent.Load(r.toState(model))
+	return ent.Load(state)
 }
 
 func (r *Repository[E, S, M]) FindOne(ctx context.Context, id entity.Id) (E, error) {
 	var model M
 	var empty E
 
-	if err := r.db.WithContext(ctx).First(&model, "id = ?", id).Error; err != nil {
-		return empty, err
+	if err := r.db.WithContext(ctx).First(&model, "id = ?", id.Hex()).Error; err != nil {
+		return empty, wrapGormError(err)
 	}
 
-	state := r.toState(&model)
+	state, err := r.toState(&model)
+	if err != nil {
+		return empty, err
+	}
 
 	ent := r.factory()
 	if err := ent.Load(state); err != nil {
@@ -86,7 +101,13 @@ func (r *Repository[E, S, M]) Update(ctx context.Context, id entity.Id, update f
 
 	version := ent.Version()
 	ent.SetVersion(version + 1)
-	newModel := r.toModel(ent.ToState())
+
+	newModel, err := r.toModel(ent.ToState())
+
+	if err != nil {
+		return err
+	}
+
 	ent.SetVersion(version)
 
 	result := r.db.WithContext(ctx).
@@ -96,7 +117,7 @@ func (r *Repository[E, S, M]) Update(ctx context.Context, id entity.Id, update f
 		Updates(newModel)
 
 	if result.Error != nil {
-		return result.Error
+		return wrapGormError(result.Error)
 	}
 
 	if result.RowsAffected == 0 {
@@ -113,3 +134,10 @@ func (r *Repository[E, S, M]) Delete(ctx context.Context, id entity.Id) error {
 		Delete(&model).Error
 }
 
+func wrapGormError(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return entity.ErrNotFound.Wrap(err)
+	}
+
+	return errpack.Wrap(err, "gorm error", errpack.Infra())
+}

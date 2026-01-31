@@ -26,3 +26,19 @@ func (mo *Model) Version() int {
 func (mo *Model) SetVersion(v int) {
 	mo.V = v
 }
+
+func (m *Model) ToState() (entity.State, error) {
+	id, err := entity.ParseId(m.ID)
+
+	if err != nil {
+		return entity.State{}, err
+	}
+
+	return entity.State{
+		Id:        id,
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+		DeleteAt:  &m.DeletedAt.Time,
+		Version:   m.V,
+	}, nil
+}
