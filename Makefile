@@ -1,12 +1,12 @@
 .PHONY: build
 
-build: deps
+build:
 	@go build -o xplexer .
 
 dirs:
 	@mkdir -p .tmp
 
-test: deps dirs
+test: dirs
 	@go tool gotestsum -f dots-v2 ./...
 
 wtest:
