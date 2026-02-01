@@ -42,3 +42,16 @@ func (m *Model) ToState() (entity.State, error) {
 		Version:   m.V,
 	}, nil
 }
+
+func (m *Model) LoadState(s entity.State) error {
+	m.ID = s.Id.Hex()
+	m.CreatedAt = s.CreatedAt
+	m.UpdatedAt = s.UpdatedAt
+
+	if s.DeleteAt != nil {
+		m.DeletedAt.Time = *s.DeleteAt
+	}
+
+	m.V = s.Version
+	return nil
+}

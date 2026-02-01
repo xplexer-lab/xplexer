@@ -8,11 +8,37 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/xplexer-lab/xplexer/internal/common/gormrepo/internal"
+	"github.com/xplexer-lab/xplexer/internal/common/entitytest"
+	"github.com/xplexer-lab/xplexer/internal/common/gormrepo"
 	"github.com/xplexer-lab/xplexer/internal/common/testutils"
 	gormpg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+type model struct {
+	gormrepo.Model
+	Name string
+}
+
+func buildGormRepo(db *gorm.DB) entitytest.Repository {
+	return gormrepo.New(
+		db,
+		entitytest.EmptyDummy,
+		func(ds entitytest.State) (*model, error) {
+			var model model
+			model.Name = ds.Name
+			return &model, model.LoadState(ds.State)
+		},
+		func(dm *model) (entitytest.State, error) {
+			s, err := dm.ToState()
+
+			return entitytest.State{
+				State: s,
+				Name:  dm.Name,
+			}, err
+		},
+	)
+}
 
 func TestGormRepoPostgress(t *testing.T) {
 	testutils.SkipIntegral(t)
@@ -51,5 +77,9 @@ func TestGormRepoPostgress(t *testing.T) {
 
 	db, err := gorm.Open(gormpg.Open(dsn))
 	require.NoError(t, err)
-	internal.NewTests().Run(t, db)
+
+	err = db.AutoMigrate(&model{})
+	require.NoError(t, err)
+
+	entitytest.New(buildGormRepo(db)).Run(t)
 }

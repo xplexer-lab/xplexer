@@ -43,6 +43,10 @@ func (id Id) Hex() string {
 	return uuid.UUID(id).String()
 }
 
+func (id Id) Validate() error {
+	return uuid.Validate(id.Hex())
+}
+
 type Entity struct {
 	id        Id
 	createdAt time.Time
@@ -74,8 +78,8 @@ type Opt func(*Entity)
 func New(opts ...Opt) *Entity {
 	return &Entity{
 		id:        NewId(),
-		createdAt: time.Now(),
-		updatedAt: time.Now(),
+		createdAt: time.Now().Round(time.Millisecond),
+		updatedAt: time.Now().Round(time.Microsecond),
 		deletedAt: nil,
 		version:   0,
 	}
@@ -145,4 +149,9 @@ func (e *Entity) Load(s State) error {
 	e.version = s.Version
 
 	return nil
+}
+
+func (e *Entity) Validate() error {
+	// todo: validate other parts
+	return e.id.Validate()
 }

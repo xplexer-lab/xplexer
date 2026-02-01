@@ -53,6 +53,12 @@ func (r *Repository[E, S, M]) Insert(ctx context.Context, ent E) error {
 		return err
 	}
 
+	if validator, ok := any(ent).(interface{ Validate() error }); ok {
+		if err := validator.Validate(); err != nil {
+			return err
+		}
+	}
+
 	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
 		return err
 	}

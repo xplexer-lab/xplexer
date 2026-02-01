@@ -75,6 +75,14 @@ func (e *Error) Is(err error) bool {
 	return errors.As(err, &perr) && perr.typ == e.typ && perr.msg == e.msg
 }
 
+func (e *Error) EqHead(err error) bool {
+	if err, ok := (err).(*Error); ok {
+		return e.msg == err.msg && e.typ == err.typ
+	}
+
+	return false
+}
+
 func withType(typ Type) Opt {
 	return func(err *Error) {
 		err.typ = typ
