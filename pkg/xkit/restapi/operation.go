@@ -11,8 +11,8 @@ import (
 	"github.com/creasty/defaults"
 	validator "github.com/go-playground/validator/v10"
 
-	"github.com/xplexer-lab/xplexer/internal/common/binder"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/binder"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
 
 var (

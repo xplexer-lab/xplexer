@@ -11,8 +11,8 @@ import (
 
 	"github.com/gavv/httpexpect/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/xplexer-lab/xplexer/internal/common/logger"
-	"github.com/xplexer-lab/xplexer/internal/common/restapi"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/logger"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/restapi"
 )
 
 func TestApiRouter(t *testing.T) {

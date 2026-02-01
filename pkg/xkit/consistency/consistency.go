@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
 
 type txManagerKey[T any] struct{}

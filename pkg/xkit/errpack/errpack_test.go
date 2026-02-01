@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
 
 func TestErrpack(t *testing.T) {

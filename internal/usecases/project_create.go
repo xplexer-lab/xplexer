@@ -3,10 +3,10 @@ package usecases
 import (
 	"context"
 
-	"github.com/xplexer-lab/xplexer/internal/common/consistency"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
-	"github.com/xplexer-lab/xplexer/internal/common/restapi"
 	"github.com/xplexer-lab/xplexer/internal/domain"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/consistency"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/restapi"
 )
 
 type ProjectCreateIn struct {

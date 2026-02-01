@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/xplexer-lab/xplexer/internal/common/bus"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
-	"github.com/xplexer-lab/xplexer/internal/common/query"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/bus"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/query"
 )
 
 var (

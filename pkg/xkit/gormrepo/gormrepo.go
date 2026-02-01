@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/xplexer-lab/xplexer/internal/common/entity"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 	"gorm.io/gorm"
 )
 

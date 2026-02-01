@@ -7,7 +7,7 @@ import (
 	"slices"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
 
 type (

@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
-	"github.com/xplexer-lab/xplexer/internal/common/bus"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/bus"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
 
 var (

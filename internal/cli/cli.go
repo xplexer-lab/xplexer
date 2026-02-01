@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 	"github.com/xplexer-lab/xplexer/internal/usecases"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
 
 type logLevel string

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xplexer-lab/xplexer/internal/common/entity"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 )
 
 type Test struct {

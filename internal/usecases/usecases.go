@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/xplexer-lab/xplexer/internal/common/logger"
-	"github.com/xplexer-lab/xplexer/internal/common/restapi"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/logger"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/restapi"
 )
 
 func BuildRouter() *restapi.Router {

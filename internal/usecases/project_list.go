@@ -3,7 +3,7 @@ package usecases
 import (
 	"context"
 
-	"github.com/xplexer-lab/xplexer/internal/common/restapi"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/restapi"
 )
 
 type ProjectListIn struct{}

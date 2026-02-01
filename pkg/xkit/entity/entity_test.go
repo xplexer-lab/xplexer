@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/xplexer-lab/xplexer/internal/common/entity"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 )
 
 type dummy struct {

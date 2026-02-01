@@ -3,7 +3,7 @@ package domain
 import (
 	"maps"
 
-	"github.com/xplexer-lab/xplexer/internal/common/entity"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 )
 
 var (

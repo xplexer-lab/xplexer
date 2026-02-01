@@ -3,7 +3,7 @@ package gormrepo
 import (
 	"time"
 
-	"github.com/xplexer-lab/xplexer/internal/common/entity"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 	"gorm.io/gorm"
 )
 
