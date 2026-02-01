@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/xplexer-lab/xplexer/internal/common/bus"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
 )
@@ -69,7 +70,7 @@ type State struct {
 	Id        Id
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeleteAt  *time.Time
+	DeletedAt *time.Time
 	Version   int
 }
 
@@ -122,7 +123,7 @@ func (e *Entity) ToState() State {
 		Id:        e.id,
 		CreatedAt: e.createdAt,
 		UpdatedAt: e.updatedAt,
-		DeleteAt:  e.deletedAt,
+		DeletedAt: e.deletedAt,
 		Version:   e.version,
 	}
 }
@@ -143,9 +144,15 @@ func (e *Entity) Load(s State) error {
 	}
 
 	e.id = s.Id
-	e.createdAt = s.CreatedAt
-	e.updatedAt = s.UpdatedAt
-	e.deletedAt = s.DeleteAt
+	e.createdAt = s.CreatedAt.Local()
+	e.updatedAt = s.UpdatedAt.Local()
+
+	if s.DeletedAt != nil {
+		e.deletedAt = lo.ToPtr(s.DeletedAt.Local())
+	} else {
+		e.deletedAt = nil
+	}
+
 	e.version = s.Version
 
 	return nil

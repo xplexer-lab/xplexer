@@ -38,7 +38,7 @@ func (m *Model) ToState() (entity.State, error) {
 		Id:        id,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
-		DeleteAt:  &m.DeletedAt.Time,
+		DeletedAt: &m.DeletedAt.Time,
 		Version:   m.V,
 	}, nil
 }
@@ -48,8 +48,8 @@ func (m *Model) LoadState(s entity.State) error {
 	m.CreatedAt = s.CreatedAt
 	m.UpdatedAt = s.UpdatedAt
 
-	if s.DeleteAt != nil {
-		m.DeletedAt.Time = *s.DeleteAt
+	if s.DeletedAt != nil {
+		m.DeletedAt.Time = *s.DeletedAt
 	}
 
 	m.V = s.Version

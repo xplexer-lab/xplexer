@@ -99,17 +99,21 @@ func (tt *Test) Run(t *testing.T) {
 		})
 
 		t.Run("returns previously inserted item", func(t *testing.T) {
-			entry := NewDummy("hello")
+			entry := NewDummy("returns previously inserted")
 			err := repo.Insert(t.Context(), entry)
 			require.NoError(t, err)
 
-			assert.True(t, entry.Name == "hello")
+			assert.True(t, entry.Name == "returns previously inserted")
 			restored, err := repo.FindOne(t.Context(), entry.Id())
 
 			assert.NoError(t, err)
 			assert.NotNil(t, restored)
+
 			assert.Equal(t, entry.Name, restored.Name)
-			assert.Equal(t, entry.ToState(), restored.ToState())
+			assert.Equal(t, entry.Id(), restored.Id())
+			assert.Equal(t, entry.CreatedAt(), restored.CreatedAt())
+			assert.Equal(t, entry.UpdatedAt(), restored.UpdatedAt())
+			assert.Equal(t, entry.Version(), restored.Version())
 		})
 	})
 

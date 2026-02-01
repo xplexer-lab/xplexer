@@ -3,6 +3,7 @@ package gormrepo_test
 import (
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,6 +13,7 @@ import (
 	"github.com/xplexer-lab/xplexer/internal/common/gormrepo"
 	"github.com/xplexer-lab/xplexer/internal/common/testutils"
 	gormpg "gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -40,6 +42,13 @@ func buildGormRepo(db *gorm.DB) entitytest.Repository {
 	)
 }
 
+func TestGormRepoSqlite(t *testing.T) {
+	const db = "xplexer.sqlite.db"
+	_ = os.Remove(db)
+
+	runGormRepositoryTests(t, sqlite.Open(db))
+}
+
 func TestGormRepoPostgress(t *testing.T) {
 	testutils.SkipIntegral(t)
 
@@ -63,6 +72,8 @@ func TestGormRepoPostgress(t *testing.T) {
 		}
 	}()
 
+	require.NoError(t, err)
+
 	host, err := postgresContainer.Host(ctx)
 	port, err := postgresContainer.MappedPort(ctx, "5432")
 
@@ -75,7 +86,13 @@ func TestGormRepoPostgress(t *testing.T) {
 		dbName,
 	)
 
-	db, err := gorm.Open(gormpg.Open(dsn))
+	runGormRepositoryTests(t, gormpg.Open(dsn))
+}
+
+func runGormRepositoryTests(t *testing.T, dialector gorm.Dialector) {
+	t.Helper()
+
+	db, err := gorm.Open(dialector)
 	require.NoError(t, err)
 
 	err = db.AutoMigrate(&model{})
