@@ -2,6 +2,7 @@ package entity
 
 import (
 	"context"
+	"time"
 
 	"github.com/xplexer-lab/xplexer/internal/common/bus"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
@@ -35,7 +36,14 @@ type Aggregate[State any] interface {
 	Loader[State]
 	EventProvider
 	Versioner
+	Entitier
+}
+
+type Entitier interface {
 	Id() Id
+	CreatedAt() time.Time
+	UpdatedAt() time.Time
+	SetUpdatedAt(time.Time)
 }
 
 type OneFinder[T Aggregate[S], S any] interface {
@@ -66,6 +74,7 @@ type Repository[T Aggregate[S], S any] interface {
 	OneFinder[T, S]
 	Finder[T, S]
 	Updater[T, S]
+	Saver[T, S]
 	Inserter[T, S]
 	Deleter[T, S]
 }

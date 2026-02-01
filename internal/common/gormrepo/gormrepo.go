@@ -111,17 +111,12 @@ func (r *Repository[E, S, M]) Update(ctx context.Context, id entity.Id, update f
 
 func (r *Repository[E, S, M]) Delete(ctx context.Context, id entity.Id) error {
 	var model M
-	return r.db.WithContext(ctx).
+
+	res := r.db.WithContext(ctx).
 		Where("id = ?", id.Hex()).
-		Delete(&model).Error
-}
+		Delete(&model)
 
-func wrapGormError(err error) error {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return entity.ErrNotFound.Wrap(err)
-	}
-
-	return errpack.Wrap(err, "gorm error", errpack.Infra())
+	return wrapGormError(res.Error)
 }
 
 func (r *Repository[E, S, M]) Save(ctx context.Context, ent E) error {
@@ -153,4 +148,12 @@ func (r *Repository[E, S, M]) Save(ctx context.Context, ent E) error {
 	ent.SetVersion(version + 1)
 
 	return nil
+}
+
+func wrapGormError(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return entity.ErrNotFound.Wrap(err)
+	}
+
+	return errpack.Wrap(err, "gorm error", errpack.Infra())
 }

@@ -13,6 +13,7 @@ import (
 var (
 	// Base entity has to implement Aggregate
 	_ Aggregate[State] = new(Entity)
+	_ Entitier         = new(Entity)
 	_ Versioner        = new(Entity)
 	_ EventProvider    = new(Entity)
 	_ Loader[State]    = new(Entity)
@@ -92,6 +93,10 @@ func (e *Entity) Id() Id {
 
 func (e *Entity) UpdatedAt() time.Time {
 	return e.updatedAt
+}
+
+func (e *Entity) SetUpdatedAt(t time.Time) {
+	e.updatedAt = t
 }
 
 func (e *Entity) CreatedAt() time.Time {

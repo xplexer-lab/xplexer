@@ -1,5 +1,4 @@
-// entitytest
-// acceptance tests for abstract repository
+// entitytest acceptance tests for abstract repository
 package entitytest
 
 import (
@@ -189,7 +188,20 @@ func (tt *Test) Run(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, prevVersion+1, entry.Version(), "bumpts version each time")
 			}
+		})
 
+		t.Run("returns optimistic error if version doesn ot match", func(t *testing.T) {
+			entry := NewDummy("0")
+			assert.True(t, entry.Version() == 0, "has default version")
+
+			err := repo.Insert(t.Context(), entry)
+			assert.NoError(t, err, "inserts properly")
+
+			entry.SetVersion(entry.Version() + 1)
+			err = repo.Save(t.Context(), entry)
+
+			assert.ErrorIs(t, err, entity.ErrOptimisticLock)
+			assert.True(t, entity.ErrOptimisticLock.EqHead(err))
 		})
 	})
 }
