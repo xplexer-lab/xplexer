@@ -3,8 +3,8 @@ package usecases
 import (
 	"context"
 
+	"github.com/xplexer-lab/xplexer/internal/common/consistency"
 	"github.com/xplexer-lab/xplexer/internal/common/errpack"
-	"github.com/xplexer-lab/xplexer/internal/common/persistance"
 	"github.com/xplexer-lab/xplexer/internal/common/restapi"
 	"github.com/xplexer-lab/xplexer/internal/domain"
 )
@@ -20,7 +20,7 @@ type ProjectCreateOut struct {
 
 var projectCreate = restapi.Operation(
 	restapi.WithHandler(func(ctx context.Context, in ProjectCreateIn) (*ProjectCreateOut, error) {
-		return persistance.Tx(ctx, func(ctx context.Context, repos Repos) (*ProjectCreateOut, error) {
+		return consistency.Tx(ctx, func(ctx context.Context, repos Repos) (*ProjectCreateOut, error) {
 			project, err := domain.NewProject(in.Name)
 
 			if err != nil {

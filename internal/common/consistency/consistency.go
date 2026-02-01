@@ -1,4 +1,4 @@
-package persistance
+package consistency
 
 import (
 	"context"
@@ -8,6 +8,12 @@ import (
 )
 
 type txManagerKey[T any] struct{}
+
+// ENUM(ReadUncommited, ReadCommited, RepeatableRead, Serializable)
+type Isolation string
+
+// ENUM(OptimistickLocking, PessimisticLocking)
+type Strategy int
 
 func Tx[Out, Repos any](
 	ctx context.Context,

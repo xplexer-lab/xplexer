@@ -15,3 +15,7 @@
 # go
 go.work
 go.work.sum
+
+# generated
+*_gen.go
+*_gen_test.go
