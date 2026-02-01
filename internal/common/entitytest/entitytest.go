@@ -152,5 +152,24 @@ func (tt *Test) Run(t *testing.T) {
 			assert.ErrorIs(t, err, entity.ErrNotFound)
 			assert.True(t, entity.ErrNotFound.EqHead(err))
 		})
+
+		t.Run("updates entry", func(t *testing.T) {
+			entry := NewDummy("start")
+			assert.True(t, entry.Version() == 0, "has default version")
+			err := repo.Insert(t.Context(), entry)
+			assert.True(t, entry.Version() == 1, "bumps version on insert")
+			require.NoError(t, err)
+
+			err = repo.Update(t.Context(), entry.Id(), func(e *Entity) error {
+				e.Name = "updated"
+				return nil
+			})
+			require.NoError(t, err)
+			updated, err := repo.FindOne(t.Context(), entry.Id())
+			require.NoError(t, err)
+
+			assert.Equal(t, "updated", updated.Name)
+			assert.Equal(t, 2, updated.Version())
+		})
 	})
 }

@@ -15,6 +15,7 @@ import (
 	gormpg "gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type model struct {
@@ -92,7 +93,10 @@ func TestGormRepoPostgress(t *testing.T) {
 func runGormRepositoryTests(t *testing.T, dialector gorm.Dialector) {
 	t.Helper()
 
-	db, err := gorm.Open(dialector)
+	db, err := gorm.Open(dialector, &gorm.Config{
+		Logger: logger.Discard,
+	})
+
 	require.NoError(t, err)
 
 	err = db.AutoMigrate(&model{})
