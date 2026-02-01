@@ -35,6 +35,7 @@ type Aggregate[State any] interface {
 	Loader[State]
 	EventProvider
 	Versioner
+	Id() Id
 }
 
 type OneFinder[T Aggregate[S], S any] interface {
@@ -47,6 +48,10 @@ type Finder[T Aggregate[S], S any] interface {
 
 type Updater[T Aggregate[S], S any] interface {
 	Update(ctx context.Context, id Id, update func(T) error) error
+}
+
+type Saver[T Aggregate[S], S any] interface {
+	Save(ctx context.Context, entity T) error
 }
 
 type Inserter[T Aggregate[S], S any] interface {

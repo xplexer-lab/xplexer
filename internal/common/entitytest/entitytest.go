@@ -73,6 +73,7 @@ type State struct {
 type Repository interface {
 	entity.OneFinder[*Entity, State]
 	entity.Updater[*Entity, State]
+	entity.Saver[*Entity, State]
 	entity.Inserter[*Entity, State]
 	entity.Deleter[*Entity, State]
 }
@@ -170,6 +171,25 @@ func (tt *Test) Run(t *testing.T) {
 
 			assert.Equal(t, "updated", updated.Name)
 			assert.Equal(t, 2, updated.Version())
+		})
+
+	})
+
+	t.Run("Save", func(t *testing.T) {
+		t.Run("bumps version each time", func(t *testing.T) {
+			entry := NewDummy("0")
+			assert.True(t, entry.Version() == 0, "has default version")
+
+			err := repo.Insert(t.Context(), entry)
+			assert.NoError(t, err, "saves")
+
+			for range 3 {
+				prevVersion := entry.Version()
+				err := repo.Save(t.Context(), entry)
+				assert.NoError(t, err)
+				assert.Equal(t, prevVersion+1, entry.Version(), "bumpts version each time")
+			}
+
 		})
 	})
 }
