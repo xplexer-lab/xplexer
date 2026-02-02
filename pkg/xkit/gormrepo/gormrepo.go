@@ -6,16 +6,12 @@ import (
 
 	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/query"
 	"gorm.io/gorm"
 )
 
 var (
-	_ entity.Inserter[entity.Aggregate[any], any]  = new(Repository[entity.Aggregate[any], any, Model])
-	_ entity.OneFinder[entity.Aggregate[any], any] = new(Repository[entity.Aggregate[any], any, Model])
-	_ entity.Updater[entity.Aggregate[any], any]   = new(Repository[entity.Aggregate[any], any, Model])
-	_ entity.Deleter[entity.Aggregate[any], any]   = new(Repository[entity.Aggregate[any], any, Model])
-	_ entity.Saver[entity.Aggregate[any], any]     = new(Repository[entity.Aggregate[any], any, Model])
-	// todo: implement other parts of repository
+	_ entity.Repository[entity.Aggregate[any], any] = new(Repository[entity.Aggregate[any], any, Model])
 )
 
 // Creates empty entity
@@ -148,6 +144,10 @@ func (r *Repository[E, S, M]) Save(ctx context.Context, ent E) error {
 	ent.SetVersion(version + 1)
 
 	return nil
+}
+
+func (re *Repository[E, S, M]) Find(ctx context.Context, cond query.Condition) ([]E, error) {
+	return nil, errpack.New("not implemented")
 }
 
 func wrapGormError(err error) error {

@@ -70,11 +70,7 @@ type State struct {
 
 // Repository represents abstract repository
 type Repository interface {
-	entity.OneFinder[*Entity, State]
-	entity.Updater[*Entity, State]
-	entity.Saver[*Entity, State]
-	entity.Inserter[*Entity, State]
-	entity.Deleter[*Entity, State]
+	entity.Repository[*Entity, State]
 }
 
 func New(

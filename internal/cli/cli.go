@@ -101,7 +101,7 @@ func (c *Cli) controlPlaneCommand() {
 	controlPlane.Action(func(pc *kingpin.ParseContext) error {
 		c.logger.Info("reading config file", slog.String("path", *config))
 
-		handler, err := usecases.BuildRouter().BuildHandler()
+		handler, err := usecases.BuildRouter(nil).BuildHandler()
 
 		if err != nil {
 			return err

@@ -24,6 +24,10 @@ type Project struct {
 	schemas map[SchemaSlug]Schema
 }
 
+func (p *Project) Name() string {
+	return p.name
+}
+
 type ProjectState struct {
 	entity.State
 	Name    string
