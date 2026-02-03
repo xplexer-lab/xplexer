@@ -3,6 +3,7 @@ package sqlrepo
 import (
 	"github.com/xplexer-lab/xplexer/internal/domain"
 	"github.com/xplexer-lab/xplexer/internal/usecases"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/gormrepo"
 	"gorm.io/gorm"
 )
@@ -24,7 +25,9 @@ func newProjectRepository(tx *gorm.DB) *projectRepository {
 	base := gormrepo.New[*domain.Project, domain.ProjectState, projectModel](
 		tx,
 		func() *domain.Project {
-			return &domain.Project{}
+			return &domain.Project{
+				Entity: &entity.Entity{},
+			}
 		},
 		func(ps domain.ProjectState) (*projectModel, error) {
 			pm := &projectModel{}

@@ -7,10 +7,12 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xplexer-lab/xplexer/internal/domain"
 	"github.com/xplexer-lab/xplexer/internal/usecases"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/consistency"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 )
 
 type (
@@ -48,8 +50,6 @@ func (tt *Tests) testProjects(t *testing.T) {
 
 	t.Run("GET /core/projects/{id}", func(t *testing.T) {
 		t.Run("project is avaliable by id", func(t *testing.T) {
-			t.Skip("fix failing tests")
-
 			project, err := domain.NewProject("my-project")
 			require.NoError(t, err)
 
@@ -59,10 +59,23 @@ func (tt *Tests) testProjects(t *testing.T) {
 
 			require.NoError(t, err)
 
+			var res usecases.ProjectDto
+
 			tt.test(t).
 				GET("/core/projects/{id}", project.Id().Hex()).
 				Expect().
 				Status(http.StatusOK).
+				JSON().
+				Decode(&res)
+
+			assert.Equal(t, "my-project", res.Name)
+		})
+
+		t.Run("returns 422 if project does not exist", func(t *testing.T) {
+			tt.test(t).
+				GET("/core/projects/{id}", entity.NewId().Hex()).
+				Expect().
+				Status(http.StatusUnprocessableEntity).
 				JSON()
 		})
 	})

@@ -8,17 +8,9 @@ import (
 
 type ProjectListIn struct{}
 
-type ProjectDto struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
 var projectList = restapi.Operation(
 	restapi.WithOpMiddlewares(),
 	restapi.WithHandler(func(ctx context.Context, in ProjectListIn) ([]ProjectDto, error) {
-		return []ProjectDto{
-			{"1", "first"},
-			{"2", "second"},
-		}, nil
+		return []ProjectDto{}, nil
 	}),
 )

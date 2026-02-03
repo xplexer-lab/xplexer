@@ -85,11 +85,11 @@ func (qh *operationHanlder) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (qh *operationHanlder) In() reflect.Type {
-	panic("todo: implement")
+	return qh.in
 }
 
 func (qh *operationHanlder) Out() reflect.Type {
-	panic("todo: implement")
+	return qh.out
 }
 
 func (qh *operationHanlder) handleError(
