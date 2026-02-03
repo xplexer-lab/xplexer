@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"maps"
 
 	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
@@ -16,6 +17,16 @@ func NewProject(name string) (*Project, error) {
 		name:    name,
 		schemas: make(map[SchemaSlug]Schema),
 	}, nil
+}
+
+func MustNewProject(name string) *Project {
+	p, err := NewProject(name)
+
+	if err != nil {
+		panic(fmt.Errorf("must new project failed: %w", err))
+	}
+
+	return p
 }
 
 type Project struct {

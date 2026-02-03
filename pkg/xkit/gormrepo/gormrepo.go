@@ -146,8 +146,34 @@ func (r *Repository[E, S, M]) Save(ctx context.Context, ent E) error {
 	return nil
 }
 
-func (re *Repository[E, S, M]) Find(ctx context.Context, cond query.Condition) ([]E, error) {
-	return nil, errpack.New("not implemented")
+func (r *Repository[E, S, M]) Find(ctx context.Context, cond query.Condition) ([]E, error) {
+	var models []M
+
+	db := r.db.WithContext(ctx).Model(new(M))
+
+	if err := db.Find(&models).Error; err != nil {
+		return nil, wrapGormError(err)
+	}
+
+	items := make([]E, 0, len(models))
+
+	for _, model := range models {
+		m := model
+
+		state, err := r.toState(&m)
+		if err != nil {
+			return nil, err
+		}
+
+		ent := r.factory()
+		if err := ent.Load(state); err != nil {
+			return nil, err
+		}
+
+		items = append(items, ent)
+	}
+
+	return items, nil
 }
 
 func wrapGormError(err error) error {

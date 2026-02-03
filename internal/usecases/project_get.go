@@ -13,7 +13,7 @@ type ProjectGetIn struct {
 
 var projectGet = restapi.Operation(
 	restapi.WithHandler(func(ctx context.Context, in ProjectGetIn) (*ProjectDto, error) {
-		repos := getRepos(ctx)
+		repos := Repos(ctx)
 
 		if project, err := repos.Projects.FindOne(ctx, in.ID); err != nil {
 			return nil, err
