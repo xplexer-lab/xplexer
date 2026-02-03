@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/binder"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/bus"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 )
@@ -18,6 +19,8 @@ var (
 	_ EventProvider    = new(Entity)
 	_ Loader[State]    = new(Entity)
 	_ Dumper[State]    = new(Entity)
+	// ID interfaces
+	_ binder.PathUnmarshaler = new(Id)
 )
 
 type Id uuid.UUID
@@ -47,6 +50,15 @@ func (id Id) Hex() string {
 
 func (id Id) Validate() error {
 	return uuid.Validate(id.Hex())
+}
+
+func (id *Id) UnmarshalPath(val string) error {
+	if pid, err := ParseId(val); err != nil {
+		return err
+	} else {
+		*id = pid
+		return nil
+	}
 }
 
 type Entity struct {

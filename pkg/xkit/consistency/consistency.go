@@ -53,6 +53,10 @@ func Tx[Out, Repos any](
 	return resAny.(Out), nil
 }
 
+func Repos[Repos any](ctx context.Context) Repos {
+	return ctx.Value(txManagerKey[Repos]{}).(TxManager[Repos]).Repos()
+}
+
 func Inject[Repos any](
 	mgr TxManager[Repos],
 ) func(http.Handler) http.Handler {
@@ -70,4 +74,5 @@ type TxOpt func(*TxCfg)
 
 type TxManager[Repos any] interface {
 	Do(context.Context, func(context.Context, Repos) (any, error), ...TxOpt) (any, error)
+	Repos() Repos
 }

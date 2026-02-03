@@ -16,3 +16,9 @@ type ProjectRepository interface {
 type Repositories struct {
 	Projects ProjectRepository
 }
+
+var getRepos = consistency.Repos[Repositories]
+
+// func repos(ctx context.Context) Repositories {
+// 	return consistency.Repos[Repositories](ctx)
+// }

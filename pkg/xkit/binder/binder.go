@@ -194,6 +194,17 @@ func setScalar(v reflect.Value, s string) error {
 		}
 		v.SetFloat(f)
 	}
+
+	if setter, ok := v.Interface().(PathUnmarshaler); ok {
+		return setter.UnmarshalPath(s)
+	}
+
+	if v.CanAddr() {
+		if setter, ok := v.Addr().Interface().(PathUnmarshaler); ok {
+			return setter.UnmarshalPath(s)
+		}
+	}
+
 	return nil
 }
 
@@ -210,4 +221,8 @@ func setSlice(v reflect.Value, values []string) error {
 
 	v.Set(newSlice)
 	return nil
+}
+
+type PathUnmarshaler interface {
+	UnmarshalPath(string) error
 }

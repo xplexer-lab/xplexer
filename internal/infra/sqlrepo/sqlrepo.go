@@ -55,6 +55,10 @@ func (tx *txManager) Do(
 	return res, err
 }
 
+func (tx *txManager) Repos() usecases.Repositories {
+	return newReposiotries(tx.db)
+}
+
 func newReposiotries(tx *gorm.DB) usecases.Repositories {
 	return usecases.Repositories{
 		Projects: newProjectRepository(tx),
