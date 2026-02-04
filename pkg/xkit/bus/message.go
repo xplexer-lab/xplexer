@@ -11,40 +11,6 @@ var (
 	_ AnyEnvelope = new(Envelope[proto.Message])
 )
 
-type AnyEnvelope interface {
-	ID() string
-	Metadata() Metadata
-	ProtoPayload() proto.Message
-}
-
-type Envelope[P proto.Message] struct {
-	payload  P
-	metadata Metadata
-}
-
-type Metadata struct {
-	ID        string     `json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	Attempt   int        `json:"atempt"`
-	ExpiresAt *time.Time `json:"expires_at"`
-}
-
-func (en *Envelope[P]) ID() string {
-	return en.metadata.ID
-}
-
-func (en *Envelope[P]) Metadata() Metadata {
-	return en.metadata
-}
-
-func (en *Envelope[P]) ProtoPayload() proto.Message {
-	return en.payload
-}
-
-func (en *Envelope[P]) Payload() P {
-	return en.payload
-}
-
 func NewEnvelope[P proto.Message](payload P, opts ...MessageOpt) *Envelope[P] {
 	msg := Envelope[P]{
 		payload: payload,
@@ -61,8 +27,42 @@ func NewEnvelope[P proto.Message](payload P, opts ...MessageOpt) *Envelope[P] {
 	return &msg
 }
 
-func (m *Envelope[P]) IncrAttempts() {
-	m.metadata.Attempt++
+type AnyEnvelope interface {
+	ID() string
+	Metadata() Metadata
+	ProtoPayload() proto.Message
+}
+
+type Envelope[P proto.Message] struct {
+	payload  P
+	metadata Metadata
+}
+
+type Metadata struct {
+	ID        string     `json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	Attempt   int        `json:"attempt"`
+	ExpiresAt *time.Time `json:"expires_at"`
+}
+
+func (e *Envelope[P]) ID() string {
+	return e.metadata.ID
+}
+
+func (e *Envelope[P]) Metadata() Metadata {
+	return e.metadata
+}
+
+func (e *Envelope[P]) ProtoPayload() proto.Message {
+	return e.payload
+}
+
+func (e *Envelope[P]) Payload() P {
+	return e.payload
+}
+
+func (e *Envelope[P]) IncrAttempts() {
+	e.metadata.Attempt++
 }
 
 type MessageOpt func(*Metadata)

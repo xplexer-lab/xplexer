@@ -9,10 +9,12 @@ import (
 
 type txManagerKey[T any] struct{}
 
+// Isolation
 // ENUM(ReadUncommited, ReadCommited, RepeatableRead, Serializable)
 type Isolation string
 
-// ENUM(OptimistickLocking, PessimisticLocking)
+// Strategy
+// ENUM(OptimisticLocking, PessimisticLocking)
 type Strategy int
 
 func Tx[Out, Repos any](
