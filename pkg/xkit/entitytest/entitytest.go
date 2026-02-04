@@ -129,7 +129,7 @@ func (tt *Test) Run(t *testing.T) {
 		})
 
 		t.Run("invokes validate method if one exists", func(t *testing.T) {
-			var expectedErr = errors.New("artifitial validate error")
+			var expectedErr = errors.New("artificial validate error")
 			entry := NewDummy("hello")
 			entry.validate = func() error {
 				return expectedErr
@@ -182,11 +182,11 @@ func (tt *Test) Run(t *testing.T) {
 				prevVersion := entry.Version()
 				err := repo.Save(t.Context(), entry)
 				assert.NoError(t, err)
-				assert.Equal(t, prevVersion+1, entry.Version(), "bumpts version each time")
+				assert.Equal(t, prevVersion+1, entry.Version(), "bumps version each time")
 			}
 		})
 
-		t.Run("returns optimistic error if version doesn ot match", func(t *testing.T) {
+		t.Run("returns optimistic error if version doesn't ot match", func(t *testing.T) {
 			entry := NewDummy("0")
 			assert.True(t, entry.Version() == 0, "has default version")
 
