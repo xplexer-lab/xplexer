@@ -44,11 +44,11 @@ func MustParseId(in string) Id {
 	return id
 }
 
-func (id *Id) Hex() string {
-	return uuid.UUID(*id).String()
+func (id Id) Hex() string {
+	return uuid.UUID(id).String()
 }
 
-func (id *Id) Validate() error {
+func (id Id) Validate() error {
 	return uuid.Validate(id.Hex())
 }
 
