@@ -2,8 +2,7 @@ package domain
 
 import (
 	"fmt"
-	"maps"
-
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
 )
 
@@ -13,9 +12,8 @@ var (
 
 func NewProject(name string) (*Project, error) {
 	return &Project{
-		Entity:  entity.New(),
-		name:    name,
-		schemas: make(map[SchemaSlug]Schema),
+		Entity: entity.New(),
+		name:   name,
 	}, nil
 }
 
@@ -31,25 +29,26 @@ func MustNewProject(name string) *Project {
 
 type Project struct {
 	*entity.Entity
-	name    string
-	schemas map[SchemaSlug]Schema
+	name string
+	// todo: extend with strategies
 }
+
+type ProjectState struct {
+	entity.State
+	Name string
+}
+
+type CreateSchemaCfg struct{}
+type CreateSchemaOpt func(*CreateSchemaCfg)
 
 func (p *Project) Name() string {
 	return p.name
 }
 
-type ProjectState struct {
-	entity.State
-	Name    string
-	Schemas map[SchemaSlug]Schema
-}
-
 func (p *Project) ToState() ProjectState {
 	return ProjectState{
-		State:   p.Entity.ToState(),
-		Name:    p.name,
-		Schemas: maps.Clone(p.schemas),
+		State: p.Entity.ToState(),
+		Name:  p.name,
 	}
 }
 
@@ -59,7 +58,40 @@ func (p *Project) Load(s ProjectState) error {
 	}
 
 	p.name = s.Name
-	p.schemas = s.Schemas
 
 	return nil
+}
+
+// CreateSchema create new schema
+func (p *Project) CreateSchema(
+	slug SchemaSlug,
+	jSchema jsonschema.Schema,
+	opts ...CreateSchemaOpt,
+) (*Schema, error) {
+	cfg := CreateSchemaCfg{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	if err := slug.Validate(); err != nil {
+		return nil, err
+	}
+
+	_ = jSchema
+
+	var schema = Schema{
+		Entity:  entity.New(),
+		slug:    slug,
+		project: p.Id(),
+		version: 0,
+	}
+
+	if _, err := jSchema.MarshalJSON(); err != nil {
+		return nil, err
+	}
+
+	// jSchema.Schema
+	// todo: with rollback
+
+	return &schema, nil
 }

@@ -2,7 +2,7 @@ package domain
 
 import (
 	"github.com/xplexer-lab/xplexer/pkg/xkit/entity"
-	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
+	"strings"
 )
 
 var (
@@ -13,10 +13,19 @@ type SchemaId string
 
 type SchemaSlug string
 
+func (ss SchemaSlug) Validate() error {
+	if len(strings.TrimSpace(string(ss))) == 0 {
+		return ErrEmptySlug
+	}
+
+	return nil
+}
+
 type Schema struct {
 	*entity.Entity
 	slug    SchemaSlug
 	project entity.Id
+	version uint
 }
 
 func (sc *Schema) ToState() SchemaState {
@@ -28,7 +37,7 @@ func (sc *Schema) ToState() SchemaState {
 }
 
 func (sc *Schema) Load(_ SchemaState) error {
-	return errpack.New("not implemented", errpack.Bootstrap())
+	return ErrNotImplemented
 }
 
 type SchemaState struct {
