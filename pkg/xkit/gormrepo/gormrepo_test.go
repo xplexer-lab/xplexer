@@ -50,7 +50,7 @@ func TestGormRepoSqlite(t *testing.T) {
 	runGormRepositoryTests(t, sqlite.Open(db))
 }
 
-func TestGormRepoPostgress(t *testing.T) {
+func TestGormRepoPostgres(t *testing.T) {
 	testutils.SkipIntegral(t)
 
 	ctx := t.Context()

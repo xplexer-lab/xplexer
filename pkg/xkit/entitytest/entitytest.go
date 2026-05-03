@@ -24,11 +24,11 @@ type Entity struct {
 	validate func() error
 }
 
-func (d *Entity) Validate() error {
-	if d.validate == nil {
+func (e *Entity) Validate() error {
+	if e.validate == nil {
 		return nil
 	}
-	return d.validate()
+	return e.validate()
 }
 
 func NewDummy(name string) *Entity {
@@ -50,17 +50,17 @@ func skipValidation() error {
 	return nil
 }
 
-func (du *Entity) ToState() State {
+func (e *Entity) ToState() State {
 	return State{
-		State: du.Entity.ToState(),
-		Name:  du.Name,
+		State: e.Entity.ToState(),
+		Name:  e.Name,
 	}
 }
 
-func (du *Entity) Load(s State) error {
-	du.Name = s.Name
+func (e *Entity) Load(s State) error {
+	e.Name = s.Name
 
-	return du.Entity.Load(s.State)
+	return e.Entity.Load(s.State)
 }
 
 type State struct {
