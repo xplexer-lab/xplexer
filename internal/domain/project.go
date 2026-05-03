@@ -77,8 +77,6 @@ func (p *Project) CreateSchema(
 		return nil, err
 	}
 
-	_ = jSchema
-
 	var schema = Schema{
 		Entity:  entity.New(),
 		slug:    slug,

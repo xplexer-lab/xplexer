@@ -29,8 +29,6 @@ func TestProject_CreateSchema(t *testing.T) {
 	})
 
 	t.Run("try validation against schema", func(t *testing.T) {
-		t.Skipf("just temporary impl")
-
 		type User struct {
 			Name string `json:"name"`
 			Age  int    `json:"age"`
@@ -42,7 +40,8 @@ func TestProject_CreateSchema(t *testing.T) {
 
 		name := &jsonschema.Schema{}
 		name.Default = json.RawMessage(`"don"`)
-		name.Types = []string{"string", "null"}
+		name.Types = []string{"string"}
+		name.MinLength = jsonschema.Ptr(1)
 
 		age := &jsonschema.Schema{}
 		age.Minimum = jsonschema.Ptr(1.0)
@@ -53,15 +52,15 @@ func TestProject_CreateSchema(t *testing.T) {
 		schema.Properties["age"] = age
 		schema.Required = []string{"age", "name"}
 
-		jData, err := schema.MarshalJSON()
+		serializedSchema, err := schema.MarshalJSON()
 		assert.NoError(t, err)
-		t.Logf("%s", string(jData))
+		t.Logf("%s", string(serializedSchema))
 
 		resolved, err := schema.Resolve(nil)
 		assert.NoError(t, err)
 		user := User{
-			Name: "",
-			Age:  101,
+			Name: "asd",
+			Age:  100,
 		}
 
 		uData, err := json.Marshal(user)
