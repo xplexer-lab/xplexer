@@ -11,11 +11,11 @@ var (
 	_ AnyEnvelope = new(Envelope[proto.Message])
 )
 
-func NewEnvelope[P proto.Message](payload P, opts ...MessageOpt) *Envelope[P] {
+func NewEnvelope[P proto.Message](payload P, opts ...EnvelopeOpt) *Envelope[P] {
 	msg := Envelope[P]{
 		payload: payload,
 		metadata: Metadata{
-			ID:        uuid.New().String(),
+			ID:        uuid.New(),
 			CreatedAt: time.Now(),
 		},
 	}
@@ -28,7 +28,7 @@ func NewEnvelope[P proto.Message](payload P, opts ...MessageOpt) *Envelope[P] {
 }
 
 type AnyEnvelope interface {
-	ID() string
+	ID() uuid.UUID
 	Metadata() Metadata
 	ProtoPayload() proto.Message
 }
@@ -39,13 +39,13 @@ type Envelope[P proto.Message] struct {
 }
 
 type Metadata struct {
-	ID        string     `json:"id"`
+	ID        uuid.UUID  `json:"id"`
 	CreatedAt time.Time  `json:"created_at"`
 	Attempt   int        `json:"attempt"`
 	ExpiresAt *time.Time `json:"expires_at"`
 }
 
-func (e *Envelope[P]) ID() string {
+func (e *Envelope[P]) ID() uuid.UUID {
 	return e.metadata.ID
 }
 
@@ -65,22 +65,28 @@ func (e *Envelope[P]) IncrAttempts() {
 	e.metadata.Attempt++
 }
 
-type MessageOpt func(*Metadata)
+type EnvelopeOpt func(*Metadata)
 
-func WithMetadata(metadata Metadata) MessageOpt {
+func WithMetadata(metadata Metadata) EnvelopeOpt {
 	return func(m *Metadata) {
 		*m = metadata
 	}
 }
 
-func WithExpiration(expiresAt time.Time) MessageOpt {
+func WithExpiration(expiresAt time.Time) EnvelopeOpt {
 	return func(m *Metadata) {
 		m.ExpiresAt = &expiresAt
 	}
 }
 
-func WithCreatedAt(createdAt time.Time) MessageOpt {
+func WithCreatedAt(createdAt time.Time) EnvelopeOpt {
 	return func(m *Metadata) {
 		m.CreatedAt = createdAt
+	}
+}
+
+func WithId(id uuid.UUID) EnvelopeOpt {
+	return func(m *Metadata) {
+		m.ID = id
 	}
 }
