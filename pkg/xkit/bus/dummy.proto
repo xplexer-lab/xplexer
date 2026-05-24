@@ -1,0 +1,10 @@
+syntax = "proto3";
+package internal;
+
+option go_package = "github.com/xplexer-dev/xplexer/pkg/xkit/bus/internal";
+
+message Person {
+  int32 id = 2;
+  string full_name = 1;
+  string email = 3;
+}

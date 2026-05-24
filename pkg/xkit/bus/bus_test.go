@@ -1,81 +1,70 @@
 package bus_test
 
 import (
-	"github.com/redis/go-redis/v9"
+	"context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/bus"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/bus/internal"
 	"sync"
 	"testing"
+	"time"
 )
 
-func TestRedisBus(t *testing.T) {
-	ctx := t.Context()
-
-	redisC, err := testcontainers.Run(
-		ctx, "redis:latest",
-		testcontainers.WithExposedPorts("6379/tcp"),
-		testcontainers.WithWaitStrategy(
-			wait.ForListeningPort("6379/tcp"),
-			wait.ForLog("Ready to accept connections"),
-		),
-	)
-	testcontainers.CleanupContainer(t, redisC)
-	require.NoError(t, err)
-
-	endpoint, err := redisC.Endpoint(ctx, "")
-	require.NoError(t, err)
-	t.Logf("endpoint=%s", endpoint)
-
-	client := redis.NewClient(&redis.Options{
-		Addr: endpoint,
-	})
-	rBus := bus.NewRedisBus(client)
-
-	t.Cleanup(func() {
-		if err := rBus.Close(); err != nil {
-			t.Fatalf("failed to close bus: %v", err)
-		}
-	})
-
-	t.Run("test redis connection", func(t *testing.T) {
-		for range 10 {
-			err := client.RPush(ctx, "key", "value").Err()
-			assert.NoError(t, err)
-		}
-
-		size, err := client.LLen(ctx, "key").Result()
-		assert.NoError(t, err)
-		assert.Equal(t, int64(10), size)
-	})
-
-	acceptanceTest(t, rBus)
+type busTest struct {
+	bus     bus.Bus
+	timeout time.Duration
 }
 
-func acceptanceTest(t *testing.T, bus bus.Bus) {
+func (bt *busTest) run(t *testing.T) {
 	t.Helper()
-	t.Skipf("skip pub sub testing")
+	t.Run("pub sub cycle works", bt.testPubSubCycle)
+}
 
-	t.Run("pub sub cycle works", func(t *testing.T) {
-		t.Skip()
+func (bt *busTest) testPubSubCycle(t *testing.T) {
+	t.Helper()
+	ctx, cancelCtx := context.WithTimeout(t.Context(), bt.timeout)
+	t.Cleanup(cancelCtx)
 
-		const msgNr = 5
+	const msgNr = 50
+	var wg sync.WaitGroup
+	wg.Add(msgNr * 2)
 
-		var wg sync.WaitGroup
-		wg.Add(msgNr * 2)
+	cancel, err := bt.bus.Subscribe(ctx, bus.NewAnyHandler[*internal.Person]("handler_name", func(ctx context.Context, e bus.Envelope[*internal.Person]) error {
+		defer wg.Done()
+		t.Logf("e => %+v", e)
+		return nil
+	}))
 
-		go func() {
-			for range msgNr {
-				//bus.Publish(t.Context())
+	require.NoError(t, err)
 
-				wg.Done()
-			}
-		}()
+	defer cancel()
 
-		//cancel := bus.Subscribe(t.Context(), nil, bus.HandleFn(func() {}))
+	go func() {
+		for range msgNr {
+			msg := bus.NewEnvelope(&internal.Person{
+				Id:       1,
+				Email:    "hello@world",
+				FullName: "John Doe",
+			})
 
+			err := bt.bus.Publish(ctx, msg.AsGeneric())
+
+			assert.NoError(t, err)
+			wg.Done()
+		}
+	}()
+
+	ch := make(chan struct{})
+	go func() {
 		wg.Wait()
-	})
+		close(ch)
+	}()
+
+	select {
+	case <-ch:
+		return
+	case <-ctx.Done():
+		assert.NoError(t, ctx.Err())
+	}
 }

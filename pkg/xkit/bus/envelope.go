@@ -11,7 +11,7 @@ var (
 	_ AnyEnvelope = new(Envelope[proto.Message])
 )
 
-func NewEnvelope[P proto.Message](payload P, opts ...EnvelopeOpt) *Envelope[P] {
+func NewEnvelope[P proto.Message](payload P, opts ...EnvelopeOpt) Envelope[P] {
 	msg := Envelope[P]{
 		payload: payload,
 		metadata: Metadata{
@@ -24,7 +24,7 @@ func NewEnvelope[P proto.Message](payload P, opts ...EnvelopeOpt) *Envelope[P] {
 		opt(&msg.metadata)
 	}
 
-	return &msg
+	return msg
 }
 
 type AnyEnvelope interface {
@@ -43,6 +43,12 @@ type Metadata struct {
 	CreatedAt time.Time  `json:"created_at"`
 	Attempt   int        `json:"attempt"`
 	ExpiresAt *time.Time `json:"expires_at"`
+}
+
+func (e *Envelope[P]) AsGeneric() AnyEnvelope {
+	msg := NewEnvelope[proto.Message](proto.Clone(e.payload))
+	msg.metadata = e.metadata
+	return &msg
 }
 
 func (e *Envelope[P]) ID() uuid.UUID {
