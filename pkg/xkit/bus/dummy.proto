@@ -1,10 +1,29 @@
 syntax = "proto3";
 package internal;
 
-option go_package = "github.com/xplexer-dev/xplexer/pkg/xkit/bus/internal";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/xplexer-dev/xplexer/pkg/xkit/bus/internal/pb";
 
 message Person {
   int32 id = 2;
   string full_name = 1;
   string email = 3;
+}
+
+message Metadata {
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  uint32 attempt = 3;
+  optional google.protobuf.Timestamp expires_at = 4;
+}
+
+message Headers {
+  enum ContentType {
+    Unknown = 0;
+    JSON_V1 = 1;
+    Protobuf = 2;
+  }
+
+  ContentType content_type = 1;
 }

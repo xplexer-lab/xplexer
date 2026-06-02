@@ -5,7 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/bus"
-	"github.com/xplexer-lab/xplexer/pkg/xkit/bus/internal"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/bus/internal/pb"
 	"sync"
 	"testing"
 	"time"
@@ -30,7 +30,7 @@ func (bt *busTest) testPubSubCycle(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(msgNr * 2)
 
-	cancel, err := bt.bus.Subscribe(ctx, bus.NewAnyHandler[*internal.Person]("handler_name", func(ctx context.Context, e bus.Envelope[*internal.Person]) error {
+	cancel, err := bt.bus.Subscribe(ctx, bus.NewAnyHandler[*pb.Person]("handler_name", func(ctx context.Context, e bus.Envelope[*pb.Person]) error {
 		defer wg.Done()
 		t.Logf("e => %+v", e)
 		return nil
@@ -42,7 +42,7 @@ func (bt *busTest) testPubSubCycle(t *testing.T) {
 
 	go func() {
 		for range msgNr {
-			msg := bus.NewEnvelope(&internal.Person{
+			msg := bus.NewEnvelope(&pb.Person{
 				Id:       1,
 				Email:    "hello@world",
 				FullName: "John Doe",

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/redis/go-redis/v9"
-	"github.com/xplexer-lab/xplexer/pkg/xkit/bus/internal"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/bus/internal/pb"
 	"github.com/xplexer-lab/xplexer/pkg/xkit/errpack"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -125,7 +125,7 @@ func (r *redisBus) subscribeLoop(
 
 		for _, stream := range streams {
 			for _, msg := range stream.Messages {
-				if err := handler.Handle(ctx, NewEnvelope(proto.Message(&internal.Person{}))); err != nil {
+				if err := handler.Handle(ctx, NewEnvelope(proto.Message(&pb.Person{}))); err != nil {
 					r.logger.
 						With(slog.Any("err", err)).
 						ErrorContext(ctx, "failed to handle message")

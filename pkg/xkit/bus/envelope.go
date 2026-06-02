@@ -1,6 +1,9 @@
 package bus
 
 import (
+	"github.com/samber/lo"
+	"github.com/xplexer-lab/xplexer/pkg/xkit/bus/internal/pb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,7 +19,7 @@ func NewEnvelope[P proto.Message](payload P, opts ...EnvelopeOpt) Envelope[P] {
 		payload: payload,
 		metadata: Metadata{
 			ID:        uuid.New(),
-			CreatedAt: time.Now(),
+			CreatedAt: time.Now().UTC(),
 		},
 	}
 
@@ -29,20 +32,13 @@ func NewEnvelope[P proto.Message](payload P, opts ...EnvelopeOpt) Envelope[P] {
 
 type AnyEnvelope interface {
 	ID() uuid.UUID
-	Metadata() Metadata
+	Metadata() *Metadata
 	ProtoPayload() proto.Message
 }
 
 type Envelope[P proto.Message] struct {
 	payload  P
 	metadata Metadata
-}
-
-type Metadata struct {
-	ID        uuid.UUID  `json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	Attempt   int        `json:"attempt"`
-	ExpiresAt *time.Time `json:"expires_at"`
 }
 
 func (e *Envelope[P]) AsGeneric() AnyEnvelope {
@@ -55,8 +51,8 @@ func (e *Envelope[P]) ID() uuid.UUID {
 	return e.metadata.ID
 }
 
-func (e *Envelope[P]) Metadata() Metadata {
-	return e.metadata
+func (e *Envelope[P]) Metadata() *Metadata {
+	return &e.metadata
 }
 
 func (e *Envelope[P]) ProtoPayload() proto.Message {
@@ -95,4 +91,46 @@ func WithId(id uuid.UUID) EnvelopeOpt {
 	return func(m *Metadata) {
 		m.ID = id
 	}
+}
+
+type Metadata struct {
+	ID        uuid.UUID  `json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	Attempt   uint32     `json:"attempt"`
+	ExpiresAt *time.Time `json:"expires_at"`
+}
+
+func (m *Metadata) ToProtoMessage() *pb.Metadata {
+	return &pb.Metadata{
+		Id:        m.ID.String(),
+		CreatedAt: timestamppb.New(m.CreatedAt),
+		Attempt:   m.Attempt,
+		ExpiresAt: m.getTimestamp(),
+	}
+}
+
+func (m *Metadata) FromProtoMessage(proto *pb.Metadata) error {
+	id, err := uuid.Parse(proto.GetId())
+
+	if err != nil {
+		return err
+	}
+
+	if proto.ExpiresAt != nil {
+		m.ExpiresAt = lo.ToPtr(proto.ExpiresAt.AsTime())
+	}
+
+	m.ID = id
+	m.Attempt = proto.GetAttempt()
+	m.CreatedAt = proto.CreatedAt.AsTime()
+
+	return nil
+}
+
+func (m *Metadata) getTimestamp() *timestamppb.Timestamp {
+	if m.ExpiresAt == nil {
+		return nil
+	}
+
+	return timestamppb.New(*m.ExpiresAt)
 }

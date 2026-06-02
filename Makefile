@@ -11,8 +11,8 @@ test: dirs
 
 gen:
 	@./scripts/gen.sh
-	@mkdir -p ./pkg/xkit/bus/internal
-	@protoc  --proto_path=./pkg/xkit/bus  --go_out=./pkg/xkit/bus/internal  --go_opt=paths=source_relative  dummy.proto
+	@mkdir -p ./pkg/xkit/bus/internal/pb
+	@protoc  --proto_path=./pkg/xkit/bus --go_out=./pkg/xkit/bus/internal/pb --go_opt=paths=source_relative  dummy.proto
 #
 wtest:
 	@go tool gotestsum --watch --jsonfile=.tmp/test-report.json --post-run-command="go tool xplexer-notify .tmp/test-report.json" ./...

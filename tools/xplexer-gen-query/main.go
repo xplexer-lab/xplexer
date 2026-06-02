@@ -20,7 +20,7 @@ import "github.com/xplexer-lab/xplexer/internal/common/query"
 
 var Fields = struct {
 {{- range .Fields }}
-	{{.Name}} query.{{.Type}}Field
+	{{.Name}} query.{{.Headers}}Field
 {{- end }}
 }{
 {{- range .Fields }}
