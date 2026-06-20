@@ -1,6 +1,9 @@
 package errpack
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	_ error = new(Error)
@@ -11,6 +14,7 @@ type (
 		msg  string
 		prev error
 		typ  Type
+		args []any
 	}
 
 	Type struct {
@@ -45,7 +49,7 @@ func New(msg string, opts ...Opt) *Error {
 	return err
 }
 
-func Wrap(err error, msg string, opts ...Opt) error {
+func Wrap(err error, msg string, opts ...Opt) *Error {
 	if err == nil {
 		return nil
 	}
@@ -118,4 +122,19 @@ func WithPrev(prev error) Opt {
 	return func(err *Error) {
 		err.prev = prev
 	}
+}
+
+func NewDomainf(msg string, args ...any) *Error {
+	return New(
+		fmt.Sprintf(msg, args...),
+		Domain(),
+	)
+}
+
+func WrapDomainf(err error, msg string, args ...any) *Error {
+	return Wrap(
+		err,
+		fmt.Sprintf(msg, args...),
+		Domain(),
+	)
 }
